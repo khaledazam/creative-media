@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { siteConfig } from '@/site-config';
@@ -100,9 +101,17 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <p className="text-center text-sm text-zinc-400 mt-4">
-        Contact your administrator for access.
-      </p>
+      <div className="flex flex-col items-center gap-2 mt-4 text-center">
+        <Link
+          href="/"
+          className="text-xs text-amber-400 hover:text-amber-300 font-medium transition-colors flex items-center gap-1"
+        >
+          <span>← العودة إلى الموقع الرئيسي</span>
+        </Link>
+        <p className="text-xs text-zinc-500">
+          Contact your administrator for access.
+        </p>
+      </div>
     </div>
   );
 }

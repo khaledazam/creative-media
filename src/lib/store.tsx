@@ -1,18 +1,19 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode, type SetStateAction } from 'react';
-import { Project, Task, TeamMember, FilterState, ViewMode, Subtask, AcceptanceCriterion, Comment, Contact, ProjectContact, Lead, LeadInteraction, LeadProposal, LeadField, LeadContact, Activity, PortalSettings, PortalUpdate, PortalUpdateAttachment, EntityFile, EntityFileType, ApiKey, NotificationCategory, ProjectGoal, TaskSuggestion, AgentActivity, TimeEntry, ProjectCredentialListItem, CredentialPayload, CredentialCategory, ProjectInvoice, InvoiceStatus, BusinessSettings, EmployeeEarningsData, DEFAULT_SECTION_ORDER } from './types';
+import { Project, Task, TeamMember, FilterState, ViewMode, Subtask, AcceptanceCriterion, Comment, Contact, ProjectContact, Lead, LeadInteraction, LeadProposal, LeadField, LeadContact, Activity, PortalSettings, PortalUpdate, PortalUpdateAttachment, EntityFile, EntityFileType, ApiKey, NotificationCategory, ProjectGoal, TaskSuggestion, AgentActivity, TimeEntry, ProjectCredentialListItem, CredentialPayload, CredentialCategory, ProjectInvoice, InvoiceStatus, BusinessSettings, EmployeeEarningsData, DEFAULT_SECTION_ORDER, Contract, ContractTemplate, ContractActivity } from './types';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth-context';
 import { useDemo } from '@/lib/demo-context';
 import { generatePortalSlug } from '@/lib/portal-slug';
 import {
-  demoTeam, demoContacts, demoProjects, demoProjectContacts, demoTasks,
-  demoLeads, demoLeadInteractions, demoLeadProposals, demoLeadFields,
-  demoLeadContacts, demoActivities,
-  demoPortalSettings, demoPortalUpdates, demoPortalUpdateAttachments, demoEntityFiles, demoTimeEntries,
-  demoProjectGoals, demoTaskSuggestions, demoAgentActivity, demoProjectInvoices,
-} from '@/lib/demo-data';
+  mockTeam, mockContacts, mockProjects, mockProjectContacts, mockTasks,
+  mockLeads, mockLeadInteractions, mockLeadProposals, mockLeadFields,
+  mockLeadContacts, mockActivities,
+  mockPortalSettings, mockPortalUpdates, mockPortalUpdateAttachments, mockEntityFiles, mockTimeEntries,
+  mockProjectGoals, mockTaskSuggestions, mockAgentActivity, mockProjectInvoices,
+  mockContracts, mockContractTemplates,
+} from '@/mock';
 import {
   fetchTasks,
   insertTask,
@@ -193,6 +194,8 @@ interface AppContextType {
   projectInvoices: ProjectInvoice[];
   businessSettings: BusinessSettings | null;
   employeeEarnings: EmployeeEarningsData | null;
+  contracts: Contract[];
+  contractTemplates: ContractTemplate[];
   loading: boolean;
 
   // Filters
@@ -379,6 +382,14 @@ interface AppContextType {
   getContactsByLead: (leadId: string) => LeadContact[];
   getPrimaryLeadContact: (leadId: string) => LeadContact | undefined;
   getPortalSettings: (projectId: string) => PortalSettings | undefined;
+
+  // Contracts
+  addContract: (contract: Omit<Contract, 'id' | 'createdAt' | 'updatedAt' | 'version' | 'activities'>) => void;
+  updateContract: (id: string, updates: Partial<Contract>) => void;
+  createContractVersion: (id: string, updates: Partial<Contract>) => void;
+  confirmContract: (id: string, phone: string, hash: string) => void;
+  sendContractOTP: (id: string, phone: string) => Promise<boolean>;
+  verifyContractOTP: (id: string, phone: string, code: string) => Promise<boolean>;
 }
 
 export const defaultFilters: FilterState = {
@@ -416,6 +427,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [projectGoals, setProjectGoalsState] = useState<ProjectGoal[]>([]);
   const [taskSuggestions, setTaskSuggestionsState] = useState<TaskSuggestion[]>([]);
   const [agentActivityList, setAgentActivityListState] = useState<AgentActivity[]>([]);
+  const [contracts, setContractsState] = useState<Contract[]>([]);
+  
+  const setContracts = (action: Contract[] | ((prev: Contract[]) => Contract[])) => {
+    setContractsState(prev => {
+      const updated = typeof action === 'function' ? action(prev) : action;
+      localStorage.setItem('creative_media_contracts', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const [contractTemplates, setContractTemplatesState] = useState<ContractTemplate[]>([]);
 
   /**
    * When each slice last accepted a LOCAL write.
@@ -514,26 +536,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Fetch all data from Supabase on mount (or load demo data)
   useEffect(() => {
+    // ALWAYS load contracts from localStorage for now, since we don't have a Supabase table for them
+    const savedContracts = localStorage.getItem('creative_media_contracts');
+    if (savedContracts) {
+      try {
+        setContracts(JSON.parse(savedContracts));
+      } catch(e) {
+        setContracts([...mockContracts]);
+      }
+    } else {
+      setContracts([...mockContracts]);
+    }
+
     if (isDemoMode) {
-      setProjects([...demoProjects]);
-      setTasks(demoTasks.map(t => ({ acceptance_criteria: [], blocked_by_ids: [], ...t } as Task)));
-      setTeam([...demoTeam]);
-      setContacts([...demoContacts]);
-      setProjectContacts([...demoProjectContacts]);
-      setLeads([...demoLeads]);
-      setLeadInteractions([...demoLeadInteractions]);
-      setLeadProposals([...demoLeadProposals]);
-      setLeadFields([...demoLeadFields]);
-      setLeadContacts([...demoLeadContacts]);
-      setActivities([...demoActivities]);
-      setPortalSettings([...demoPortalSettings]);
-      setPortalUpdates([...demoPortalUpdates]);
-      setPortalUpdateAttachments([...demoPortalUpdateAttachments]);
-      setEntityFiles([...demoEntityFiles]);
-      setTimeEntries([...demoTimeEntries]);
-      setProjectInvoices([...demoProjectInvoices]);
+      setProjects([...mockProjects]);
+      setTasks(mockTasks.map(t => ({ ...t, acceptance_criteria: t.acceptance_criteria || [], blocked_by_ids: t.blocked_by_ids || [] } as Task)));
+      setTeam([...mockTeam]);
+      setContacts([...mockContacts]);
+      setProjectContacts([...mockProjectContacts]);
+      setLeads([...mockLeads]);
+      setLeadInteractions([...mockLeadInteractions]);
+      setLeadProposals([...mockLeadProposals]);
+      setLeadFields([...mockLeadFields]);
+      setLeadContacts([...mockLeadContacts]);
+      setActivities([...mockActivities]);
+      setPortalSettings([...mockPortalSettings]);
+      setPortalUpdates([...mockPortalUpdates]);
+      setPortalUpdateAttachments([...mockPortalUpdateAttachments]);
+      setEntityFiles([...mockEntityFiles]);
+      setTimeEntries([...mockTimeEntries]);
+      setProjectInvoices([...mockProjectInvoices]);
+      setContractTemplatesState([...mockContractTemplates]);
       setProjectCredentials([]);
-      setEmployeeEarnings({ entries: [...demoTimeEntries], rates: [], adjustments: [], payouts: [], allocations: [] });
+      setEmployeeEarnings({ entries: [...mockTimeEntries], rates: [], adjustments: [], payouts: [], allocations: [] });
       setBusinessSettings({
         id: 'demo-business-settings',
         business_name: siteConfig.name,
@@ -549,9 +584,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         updated_at: new Date().toISOString(),
       });
       if (process.env.NEXT_PUBLIC_ENABLE_AGENTS === 'true') {
-        setProjectGoals([...demoProjectGoals]);
-        setTaskSuggestions([...demoTaskSuggestions]);
-        setAgentActivityList([...demoAgentActivity]);
+        setProjectGoals([...mockProjectGoals]);
+        setTaskSuggestions([...mockTaskSuggestions]);
+        setAgentActivityList([...mockAgentActivity]);
       }
       setLoading(false);
       return;
@@ -615,7 +650,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
           canReadSettings ? safeLoad('business settings', fetchBusinessSettings(supabase), null) : Promise.resolve(null),
         ]);
 
-        setProjects(projectsData);
+        let stagesMap: Record<string, any> = {};
+        try {
+          const raw = localStorage.getItem('creative_media_project_stages');
+          if (raw) stagesMap = JSON.parse(raw);
+        } catch {}
+
+        const enrichedProjects = (projectsData || []).map(p => ({
+          ...p,
+          workflowStage: (stagesMap[p.id] || p.workflowStage || 'site_visit') as any
+        }));
+        setProjects(enrichedProjects);
         setTasks(tasksData);
         setTeam(teamData);
         setContacts(contactsData);
@@ -987,6 +1032,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ));
     if (skipSupabase) return;
 
+    if (updates.workflowStage) {
+      try {
+        const raw = localStorage.getItem('creative_media_project_stages');
+        const stagesMap = raw ? JSON.parse(raw) : {};
+        stagesMap[id] = updates.workflowStage;
+        localStorage.setItem('creative_media_project_stages', JSON.stringify(stagesMap));
+      } catch {}
+    }
+
     try {
       const response = await fetch('/api/workspace/projects', {
         method: 'PATCH',
@@ -995,7 +1049,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Failed to update project');
-      setProjects(current => current.map(project => project.id === id ? payload.data as Project : project));
+      const merged = {
+        ...(payload.data as Project),
+        workflowStage: updates.workflowStage || projectBefore?.workflowStage || 'site_visit',
+      };
+      setProjects(current => current.map(project => project.id === id ? merged : project));
 
       // Auto-sync portal slug when project name changes
       if (updates.name && updates.name !== projectBefore?.name) {
@@ -2771,7 +2829,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const created = await insertEntityFileQuery(supabase, file);
       setEntityFiles(prev => prev.map(f => f.id === optimisticId ? created : f));
-      const link = file.entity_type === 'project' ? `/projects/${file.entity_id}` : file.entity_type === 'lead' ? `/leads/${file.entity_id}` : `/contacts/${file.entity_id}`;
+      const link = file.entity_type === 'project' ? `/projects/${file.entity_id}` : file.entity_type === 'lead' ? `/leads/${file.entity_id}` : `/customers/${file.entity_id}`;
       notify(allMemberIds(), `File attached to ${file.entity_type}`, `${actorName()} uploaded a file.`, link, file.entity_type, file.entity_id, 'entity_files');
     } catch (err) {
       setEntityFiles(prev => prev.filter(f => f.id !== optimisticId));
@@ -2801,7 +2859,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       await removeEntityFileQuery(supabase, id);
       if (existing) {
-        const link = existing.entity_type === 'project' ? `/projects/${existing.entity_id}` : existing.entity_type === 'lead' ? `/leads/${existing.entity_id}` : `/contacts/${existing.entity_id}`;
+        const link = existing.entity_type === 'project' ? `/projects/${existing.entity_id}` : existing.entity_type === 'lead' ? `/leads/${existing.entity_id}` : `/customers/${existing.entity_id}`;
         notify(allMemberIds(), `File removed from ${existing.entity_type}`, `${actorName()} deleted an attachment.`, link, existing.entity_type, existing.entity_id, 'entity_files');
       }
     } catch (err) {
@@ -3660,6 +3718,163 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // ============================================================
+  // CONTRACTS (MOCK ONLY FOR NOW)
+  // ============================================================
+  
+  const addContract = (contract: Omit<Contract, 'id' | 'createdAt' | 'updatedAt' | 'version' | 'activities'>) => {
+    const newId = `c-${Date.now()}`;
+    const newContract: Contract = {
+      ...contract,
+      id: newId,
+      version: 1,
+      activities: [
+        {
+          id: `act-${Date.now()}`,
+          contractId: newId,
+          version: 1,
+          event: 'created',
+          actorName: actorName(),
+          date: new Date().toISOString()
+        }
+      ],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    setContracts(prev => [newContract, ...prev]);
+    toast('success', 'تم إنشاء العقد بنجاح');
+  };
+
+  const updateContract = (id: string, updates: Partial<Contract>) => {
+    setContracts(prev => prev.map(c => c.id === id ? { ...c, ...updates, updatedAt: new Date().toISOString() } : c));
+  };
+
+  const createContractVersion = (id: string, updates: Partial<Contract>) => {
+    setContracts(prev => prev.map(c => {
+      if (c.id === id) {
+        const newVersion = c.version + 1;
+        const newActivity: ContractActivity = {
+          id: `act-${Date.now()}`,
+          contractId: id,
+          version: newVersion,
+          event: 'version_created',
+          actorName: actorName(),
+          date: new Date().toISOString()
+        };
+        return {
+          ...c,
+          ...updates,
+          version: newVersion,
+          activities: [...c.activities, newActivity],
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return c;
+    }));
+    toast('success', 'تم إنشاء إصدار جديد من العقد');
+  };
+
+  const confirmContract = (id: string, phone: string, hash: string) => {
+    let confirmedContract: Contract | undefined;
+    
+    setContracts(prev => prev.map(c => {
+      if (c.id === id) {
+        const newActivity: ContractActivity = {
+          id: `act-${Date.now()}`,
+          contractId: id,
+          version: c.version,
+          event: 'confirmed',
+          actorName: 'العميل',
+          date: new Date().toISOString()
+        };
+        const updated = {
+          ...c,
+          status: 'confirmed' as const,
+          confirmedAt: new Date().toISOString(),
+          confirmedPhone: phone,
+          contentHash: hash,
+          verificationMethod: 'OTP',
+          activities: [...c.activities, newActivity],
+          updatedAt: new Date().toISOString()
+        };
+        confirmedContract = updated;
+        return updated;
+      }
+      return c;
+    }));
+
+    if (confirmedContract) {
+      addProject({
+        name: confirmedContract.projectInfo.name,
+        description: confirmedContract.projectInfo.description,
+        color: '#3b82f6',
+        status: 'active',
+        start_date: new Date().toISOString().split('T')[0],
+        due_date: null,
+        budget_type: 'amount',
+        budget_value: confirmedContract.financialTerms?.totalAmount || 0,
+        hourly_tracking: false,
+        hourly_rate: null,
+        autonomous_enabled: false,
+        member_ids: [],
+        location: confirmedContract.projectInfo.location,
+        contract_id: confirmedContract.id,
+        paid_amount: 0,
+        phase: 'تصميم',
+        workflowStage: 'client_approval'
+      } as any);
+      toast('success', 'تم إنشاء مشروع جديد بناءً على العقد');
+    }
+  };
+
+  const sendContractOTP = async (id: string, phone: string) => {
+    try {
+      // In production, this would be a randomly generated OTP
+      const otpCode = '123456';
+      
+      const res = await fetch('http://localhost:3001/api/send-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: phone,
+          message: `*Creative Media*\n\nرمز التحقق الخاص بتأكيد العقد هو: *${otpCode}*\n\nيرجى عدم مشاركة هذا الرمز مع أي شخص.`
+        })
+      });
+      
+      if (!res.ok) {
+        console.warn('WhatsApp API warning:', await res.text());
+      }
+    } catch (e) {
+      console.error('Failed to send OTP via WhatsApp (ensure node whatsapp-server.js is running)', e);
+    }
+    
+    
+    setContracts(prev => prev.map(c => {
+      if (c.id === id) {
+        const newActivity: ContractActivity = {
+          id: `act-${Date.now()}`,
+          contractId: id,
+          version: c.version,
+          event: 'otp_requested',
+          actorName: 'العميل',
+          date: new Date().toISOString()
+        };
+        return { ...c, activities: [...c.activities, newActivity] };
+      }
+      return c;
+    }));
+    
+    return true;
+  };
+
+  const verifyContractOTP = async (id: string, phone: string, code: string) => {
+    // Mock OTP service delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Hardcoded dev code: 123456
+    return code === '123456';
+  };
+
   return (
     <AppContext.Provider value={{
       projects,
@@ -3805,6 +4020,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       employeeEarnings,
       updateBusinessSettings,
       getPortalSettings,
+      contracts,
+      contractTemplates,
+      addContract,
+      updateContract,
+      createContractVersion,
+      confirmContract,
+      sendContractOTP,
+      verifyContractOTP,
     }}>
       {children}
     </AppContext.Provider>

@@ -2,9 +2,8 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AuthProvider, useAuth } from '@/lib/auth-context';
-import { AppProvider, useApp } from '@/lib/store';
-import { DemoProvider } from '@/lib/demo-context';
+import { useAuth } from '@/lib/auth-context';
+import { useApp } from '@/lib/store';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { ThemeSync } from '@/components/layout/ThemeSync';
 import { DemoBanner } from '@/components/layout/DemoBanner';
@@ -126,18 +125,12 @@ function StoreGate({ children }: { children: React.ReactNode }) {
 
 export function ProtectedShell({ children }: { children: React.ReactNode }) {
   return (
-    <DemoProvider>
-      <AuthProvider>
-        <BootProvider>
-          <BootScreen />
-          <AuthGate>
-            <AppProvider>
-              <StoreStateReporter />
-              <StoreGate>{children}</StoreGate>
-            </AppProvider>
-          </AuthGate>
-        </BootProvider>
-      </AuthProvider>
-    </DemoProvider>
+    <BootProvider>
+      <BootScreen />
+      <AuthGate>
+        <StoreStateReporter />
+        <StoreGate>{children}</StoreGate>
+      </AuthGate>
+    </BootProvider>
   );
 }

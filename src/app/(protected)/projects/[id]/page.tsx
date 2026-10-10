@@ -14,6 +14,7 @@ import { TaskForm } from '@/components/tasks/TaskForm';
 import { TaskDetailPanel } from '@/components/tasks/TaskDetailPanel';
 import { ProjectForm } from '@/components/projects/ProjectForm';
 import { ProjectContactsPanel } from '@/components/projects/ProjectContactsPanel';
+import { ProjectWorkflowPipeline } from '@/components/projects/ProjectWorkflowPipeline';
 import { PortalSettingsPanel } from '@/components/projects/PortalSettingsPanel';
 import { ClientCommunicationsPanel } from '@/components/projects/ClientCommunicationsPanel';
 import { ClientCommunicationsLogPanel } from '@/components/projects/ClientCommunicationsLogPanel';
@@ -129,9 +130,9 @@ export default function ProjectDetailPage() {
       <div className="animate-fadeIn min-h-screen">
         <Header title="Project Not Found" />
         <div className="p-6 text-center">
-          <p className="text-zinc-400 mb-4">This project doesn&apos;t exist</p>
+          <p className="text-zinc-400 mb-4">هذا المشروع غير موجود</p>
           <Link href="/projects">
-            <Button variant="secondary">Back to Projects</Button>
+            <Button variant="secondary">العودة إلى المشاريع</Button>
           </Link>
         </div>
       </div>
@@ -289,15 +290,15 @@ export default function ProjectDetailPage() {
       setSelectedTaskIds(new Set());
     } else {
       deleteProject(confirmDelete.id);
-      toast('success', 'Project deleted');
+      toast('success', 'تم حذف المشروع');
       router.push('/projects');
     }
   };
 
   const viewModes: { id: ViewMode; icon: typeof LayoutGrid; label: string }[] = [
-    { id: 'board', icon: LayoutGrid, label: 'Board' },
-    { id: 'list', icon: List, label: 'List' },
-    { id: 'calendar', icon: Calendar, label: 'Calendar' },
+    { id: 'board', icon: LayoutGrid, label: 'لوحة' },
+    { id: 'list', icon: List, label: 'قائمة' },
+    { id: 'calendar', icon: Calendar, label: 'تقويم' },
   ];
 
   return (
@@ -305,7 +306,7 @@ export default function ProjectDetailPage() {
       {/* Header */}
       <Header
         title={project.name}
-        searchPlaceholder="Search tasks"
+        searchPlaceholder="البحث في المهام..."
         subtitle={
           <div className="flex flex-wrap items-center gap-2 text-sm">
             {project.color && (
@@ -328,13 +329,19 @@ export default function ProjectDetailPage() {
             icon={<Edit size={16} />}
             onClick={() => setIsEditProjectOpen(true)}
           >
-            <span className="hidden sm:inline">Edit</span>
+            <span className="hidden sm:inline">تعديل</span>
           </Button>
         : undefined}
       />
 
       {/* Overview Card */}
-      <div className="px-4 lg:px-6 pt-4 lg:pt-6">
+      <div className="px-4 lg:px-6 pt-4 lg:pt-6 space-y-6">
+        {/* Workflow Pipeline */}
+        <ProjectWorkflowPipeline 
+          currentStage={project.workflowStage || 'site_visit'} 
+          onChangeStage={(stage) => updateProject(projectId, { workflowStage: stage })} 
+        />
+        
         <div className="glass-card rounded-xl p-5 lg:p-6">
           {/* Info Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-0">
@@ -344,11 +351,11 @@ export default function ProjectDetailPage() {
                 <CalendarDays size={14} className="text-zinc-400" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-zinc-400 font-medium">Start Date</p>
+                <p className="text-xs text-zinc-400 font-medium">تاريخ البدء</p>
                 <DateInput
                   value={project.start_date || ''}
                   onChange={(v) => updateProject(projectId, { start_date: v || null })}
-                  placeholder="Not set"
+                  placeholder="غير محدد"
                   size="sm"
                   clearable
                   inputClassName="!w-fit !justify-start !gap-1 !border-transparent !bg-transparent !shadow-none hover:!bg-white/[0.06] focus:!ring-0 focus:!border-transparent !px-1.5 !-mx-1.5 !py-0.5 !rounded-md"
@@ -362,11 +369,11 @@ export default function ProjectDetailPage() {
                 <Clock size={14} className="text-zinc-400" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-zinc-400 font-medium">Due Date</p>
+                <p className="text-xs text-zinc-400 font-medium">تاريخ التسليم</p>
                 <DateInput
                   value={project.due_date || ''}
                   onChange={(v) => updateProject(projectId, { due_date: v || null })}
-                  placeholder="Not set"
+                  placeholder="غير محدد"
                   size="sm"
                   minDate={project.start_date || undefined}
                   clearable
@@ -381,7 +388,7 @@ export default function ProjectDetailPage() {
                 <Users size={14} className="text-zinc-400" />
               </div>
               <div>
-                <p className="text-xs text-zinc-400 font-medium">Team</p>
+                <p className="text-xs text-zinc-400 font-medium">فريق العمل</p>
                 {projectMembers.length > 0 ? (
                   <button onClick={() => setIsEditProjectOpen(true)} className="group">
                     <AvatarGroup
@@ -395,7 +402,7 @@ export default function ProjectDetailPage() {
                     onClick={() => setIsEditProjectOpen(true)}
                     className="text-sm text-zinc-500 hover:text-brand-300 transition-colors"
                   >
-                    Add members...
+                    إضافة أعضاء...
                   </button>
                 )}
               </div>
@@ -407,7 +414,7 @@ export default function ProjectDetailPage() {
                 <UserCircle size={14} className="text-zinc-400" />
               </div>
               <div>
-                <p className="text-xs text-zinc-400 font-medium">Contacts</p>
+                <p className="text-xs text-zinc-400 font-medium">العميل / جهات الاتصال</p>
                 {projectContactsList.length > 0 ? (
                   <button onClick={() => setIsContactsPanelOpen(true)} className="group">
                     <div className="flex items-center -space-x-1.5">
@@ -428,7 +435,7 @@ export default function ProjectDetailPage() {
                     onClick={() => setIsContactsPanelOpen(true)}
                     className="text-sm text-zinc-500 hover:text-brand-300 transition-colors"
                   >
-                    Add contacts...
+                    إضافة جهات اتصال...
                   </button>
                 )}
               </div>
@@ -444,7 +451,7 @@ export default function ProjectDetailPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
             <h2 className="text-base font-semibold text-white">
-              Tasks ({allProjectTasks.length})
+              المهام ({allProjectTasks.length})
             </h2>
             {allProjectTasks.length > 0 && (
               <div className="hidden lg:flex items-center gap-2">
@@ -569,7 +576,7 @@ export default function ProjectDetailPage() {
               icon={<Plus size={16} />}
               className="whitespace-nowrap h-9"
             >
-              <span className="hidden sm:inline">Add Task</span>
+              <span className="hidden sm:inline">إضافة مهمة</span>
             </Button>}
           </div>
         </div>
@@ -580,8 +587,8 @@ export default function ProjectDetailPage() {
             <div className="w-10 h-10 rounded-full bg-white/[0.06] flex items-center justify-center mb-3">
               <LayoutGrid size={18} className="text-zinc-500" />
             </div>
-            <p className="text-sm font-medium text-zinc-400">No tasks yet</p>
-            <p className="text-xs text-zinc-500 mt-1">Create your first task to get started</p>
+            <p className="text-sm font-medium text-zinc-400">لا توجد مهام بعد</p>
+            <p className="text-xs text-zinc-500 mt-1">قم بإنشاء مهمتك الأولى للبدء</p>
           </div>
         ) : (
           <>
@@ -658,7 +665,7 @@ export default function ProjectDetailPage() {
       {canManageProject && <div className="px-4 lg:px-6 pb-6">
         <div className="flex justify-end">
           <Button variant="danger" onClick={handleDeleteProject} icon={<Trash2 size={16} />}>
-            Delete Project
+            حذف المشروع
           </Button>
         </div>
       </div>}

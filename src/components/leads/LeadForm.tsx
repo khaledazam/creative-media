@@ -19,22 +19,22 @@ interface LeadFormProps {
 }
 
 const sourceOptions = [
-  { value: 'referral', label: 'Referral' },
-  { value: 'website', label: 'Website' },
-  { value: 'social', label: 'Social' },
-  { value: 'cold_outreach', label: 'Cold Outreach' },
-  { value: 'event', label: 'Event' },
-  { value: 'network', label: 'Network' },
-  { value: 'other', label: 'Other' },
+  { value: 'referral', label: 'إحالة' },
+  { value: 'website', label: 'موقع الشركة' },
+  { value: 'social', label: 'تواصل اجتماعي' },
+  { value: 'cold_outreach', label: 'تواصل مباشر' },
+  { value: 'event', label: 'فعالية' },
+  { value: 'network', label: 'شبكة علاقات' },
+  { value: 'other', label: 'أخرى' },
 ];
 
 const statusOptions = [
-  { value: 'new', label: 'New' },
-  { value: 'contacted', label: 'Contacted' },
-  { value: 'qualified', label: 'Qualified' },
-  { value: 'proposal', label: 'Proposal' },
-  { value: 'won', label: 'Won' },
-  { value: 'lost', label: 'Lost' },
+  { value: 'new', label: 'جديد' },
+  { value: 'contacted', label: 'تم التواصل' },
+  { value: 'qualified', label: 'تمت المعاينة' },
+  { value: 'proposal', label: 'إعداد عرض السعر' },
+  { value: 'won', label: 'تم التعاقد' },
+  { value: 'lost', label: 'مرفوض' },
 ];
 
 export function LeadForm({ isOpen, onClose, lead, onConvertRequested }: LeadFormProps) {
@@ -66,8 +66,8 @@ export function LeadForm({ isOpen, onClose, lead, onConvertRequested }: LeadForm
       setEmail('');
       setPhone('');
       setCompany('');
-      setSource('');
-      setStatus('');
+      setSource('other');
+      setStatus('new');
       setNotes('');
       setMemberIds([]);
     }
@@ -75,14 +75,15 @@ export function LeadForm({ isOpen, onClose, lead, onConvertRequested }: LeadForm
 
   const validate = () => {
     const errs: Record<string, string> = {};
-    if (!name.trim()) errs.name = 'Name is required';
-    if (!source) errs.source = 'Source is required';
-    if (!status) errs.status = 'Status is required';
+    if (!name.trim()) errs.name = 'الاسم مطلوب';
+    if (!source) errs.source = 'المصدر مطلوب';
+    if (!status) errs.status = 'الحالة مطلوبة';
     if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      errs.email = 'Invalid email format';
+      errs.email = 'البريد الإلكتروني غير صحيح';
     }
-    if (phone.trim() && !/^[+\d\s\-().]{7,20}$/.test(phone.trim())) {
-      errs.phone = 'Invalid phone number';
+    const digits = phone.replace(/\D/g, '');
+    if (phone.trim() && digits.length > 0 && digits.length < 11) {
+      errs.phone = 'رقم الهاتف غير صحيح';
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -138,88 +139,92 @@ export function LeadForm({ isOpen, onClose, lead, onConvertRequested }: LeadForm
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={lead ? 'Edit Lead' : 'New Lead'} size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} title={lead ? 'تعديل بيانات العميل' : 'عميل جديد'} size="lg">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <Input
-            label="Name"
+            label="الاسم"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Contact name"
+            placeholder="اسم العميل"
             required
             error={errors.name}
           />
           <Input
-            label="Company"
+            label="الشركة (اختياري)"
             value={company}
             onChange={(e) => setCompany(e.target.value)}
-            placeholder="Company name"
+            placeholder="اسم الشركة"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <Input
-            label="Email"
+            label="البريد الإلكتروني (اختياري)"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email address"
             error={errors.email}
+            dir="ltr"
           />
           <Input
-            label="Phone"
+            label="رقم الهاتف"
             value={phone}
             onChange={(e) => setPhone(formatPhone(e.target.value))}
-            placeholder="(555) 555-5555"
+            placeholder="010 0000 0000"
             error={errors.phone}
+            dir="ltr"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <Select
-            label="Source"
-            value={source}
-            onChange={(value) => setSource(value)}
-            options={sourceOptions}
-            placeholder="Select source..."
-            error={errors.source}
-          />
-          <Select
-            label="Status"
-            value={status}
-            onChange={(value) => setStatus(value)}
-            options={statusOptions}
-            placeholder="Select status..."
-            error={errors.status}
-          />
-        </div>
+        {lead && (
+          <div className="grid grid-cols-2 gap-4">
+            <Select
+              label="المصدر"
+              value={source}
+              onChange={(value) => setSource(value)}
+              options={sourceOptions}
+              placeholder="اختر المصدر..."
+              error={errors.source}
+            />
+            <Select
+              label="الحالة"
+              value={status}
+              onChange={(value) => setStatus(value)}
+              options={statusOptions}
+              placeholder="اختر الحالة..."
+              error={errors.status}
+            />
+          </div>
+        )}
 
         <MultiSelect
-          label="Team Members"
+          label="أعضاء الفريق"
           options={team.map((m) => ({ value: m.id, label: m.name }))}
           value={memberIds}
           onChange={setMemberIds}
-          placeholder="Select team members..."
+          placeholder="اختر أعضاء الفريق..."
           selectAll
           searchable={team.length > 4}
         />
 
         <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-zinc-300">Notes</label>
+          <label className="block text-sm font-medium text-zinc-300">ملاحظات</label>
           <RichTextEditor
             value={notes}
             onChange={setNotes}
-            placeholder="Additional notes..."
+            placeholder="ملاحظات إضافية..."
             rows={3}
           />
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
           <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
+            إلغاء
           </Button>
           <Button type="submit" disabled={saving}>
-            {saving ? 'Saving...' : lead ? 'Save Changes' : 'Add Lead'}
+            {saving ? 'جاري الحفظ...' : lead ? 'حفظ التعديلات' : 'إضافة عميل'}
           </Button>
         </div>
       </form>

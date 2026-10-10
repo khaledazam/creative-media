@@ -37,6 +37,7 @@ export function Logo({ className, variant }: { className?: string; variant?: 'da
       src={variant === 'dark' ? DARK_LOGO_SRC : '/api/logo'}
       alt={siteConfig.name}
       className={className}
+      style={{ borderRadius: '50%', objectFit: 'cover' }}
       onError={() => setImgFailed(true)}
     />
   );

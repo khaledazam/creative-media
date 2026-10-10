@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/inputs/Select';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { ContactForm } from '@/components/contacts/ContactForm';
+import { ContactForm } from '@/components/customers/ContactForm';
 import { LeadContact, CONTACT_ROLES } from '@/lib/types';
 
 interface LeadContactsSectionProps {
@@ -131,11 +131,11 @@ export function LeadContactsSection({ leadId, readOnly = false }: LeadContactsSe
         <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.08] flex-shrink-0">
           <div className="flex items-center gap-2">
             <Users size={18} className="text-zinc-400" />
-            <h2 className="font-semibold text-white">Contacts ({leadContactsList.length})</h2>
+            <h2 className="font-semibold text-white">جهات الاتصال ({leadContactsList.length})</h2>
           </div>
           {!readOnly && !showAddForm && (
             <Button size="sm" onClick={() => setShowAddForm(true)} icon={<Plus size={14} />}>
-              Add
+              إضافة
             </Button>
           )}
         </div>
@@ -163,7 +163,7 @@ export function LeadContactsSection({ leadId, readOnly = false }: LeadContactsSe
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <Link
-                            href={`/contacts/${contact.id}`}
+                            href={`/customers/${contact.id}`}
                             className="font-medium text-white text-sm hover:text-brand-300 transition-colors truncate inline-flex items-center gap-1"
                           >
                             {contact.name}
@@ -172,7 +172,7 @@ export function LeadContactsSection({ leadId, readOnly = false }: LeadContactsSe
                           {lc.is_primary_client && (
                             <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-300 flex-shrink-0">
                               <Star size={10} />
-                              Primary
+                              أساسي
                             </span>
                           )}
                         </div>
@@ -238,16 +238,16 @@ export function LeadContactsSection({ leadId, readOnly = false }: LeadContactsSe
                             <span
                               className={`text-xs whitespace-nowrap ${editIsPrimary ? 'text-amber-300' : 'text-zinc-300'}`}
                             >
-                              Primary
+                              أساسي
                             </span>
                           </label>
                         )}
                         <div className="flex items-center gap-1 ml-auto">
                           <Button size="sm" onClick={() => handleSaveEdit(lc.id)}>
-                            Save
+                            حفظ
                           </Button>
                           <Button size="sm" variant="ghost" onClick={() => setEditingLcId(null)}>
-                            Cancel
+                            إلغاء
                           </Button>
                         </div>
                       </div>
@@ -261,8 +261,8 @@ export function LeadContactsSection({ leadId, readOnly = false }: LeadContactsSe
               <div className="w-10 h-10 rounded-full bg-white/[0.06] flex items-center justify-center mb-3">
                 <Users size={18} className="text-zinc-500" />
               </div>
-              <p className="text-sm font-medium text-zinc-400">No contacts linked yet</p>
-              <p className="text-xs text-zinc-500 mt-1">Add contacts to this lead</p>
+              <p className="text-sm font-medium text-zinc-400">لم يتم ربط جهات اتصال بعد</p>
+              <p className="text-xs text-zinc-500 mt-1">قم بإضافة جهات اتصال لهذا العميل</p>
             </div>
           ) : null}
 
@@ -270,7 +270,7 @@ export function LeadContactsSection({ leadId, readOnly = false }: LeadContactsSe
           {showAddForm && (
             <div className="p-4 space-y-3 border-t border-white/[0.06]">
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium text-white">Add Contact</h4>
+                <h4 className="text-sm font-medium text-white">إضافة جهة اتصال</h4>
                 <button
                   onClick={resetAddForm}
                   className="p-1 rounded text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.08] transition-all"
@@ -283,7 +283,7 @@ export function LeadContactsSection({ leadId, readOnly = false }: LeadContactsSe
               <TextInput
                 value={addSearch}
                 onChange={setAddSearch}
-                placeholder="Search contacts..."
+                placeholder="ابحث عن جهات اتصال..."
                 size="sm"
                 leftIcon={Search}
               />
@@ -293,8 +293,8 @@ export function LeadContactsSection({ leadId, readOnly = false }: LeadContactsSe
                 {availableContacts.length === 0 ? (
                   <div className="p-3 text-sm text-zinc-400 text-center">
                     {addSearch
-                      ? 'No contacts match your search'
-                      : 'All contacts are already linked'}
+                      ? 'لا توجد جهات اتصال تطابق بحثك'
+                      : 'جميع جهات الاتصال مرتبطة بالفعل'}
                   </div>
                 ) : (
                   availableContacts.map((c) => (
@@ -328,27 +328,27 @@ export function LeadContactsSection({ leadId, readOnly = false }: LeadContactsSe
                 onClick={() => setShowNewContactForm(true)}
                 className="text-sm text-brand-300 hover:text-brand-300 font-medium"
               >
-                + Create new contact
+                + إنشاء جهة اتصال جديدة
               </button>
 
               {/* Role & primary client */}
               <div className="flex flex-wrap items-end gap-3">
                 <div className="flex-1 min-w-[140px]">
                   <Select
-                    label="Role"
+                    label="الدور"
                     value={addRole}
                     onChange={(value) => handleAddRoleChange(value)}
                     options={roleOptions}
-                    placeholder="Select a role..."
+                    placeholder="اختر الدور..."
                   />
                 </div>
                 {addRole === 'Other' && (
                   <div className="flex-1 min-w-[140px]">
                     <Input
-                      label="Custom Role"
+                      label="دور مخصص"
                       value={addCustomRole}
                       onChange={(e) => setAddCustomRole(e.target.value)}
-                      placeholder="Enter custom role..."
+                      placeholder="أدخل الدور المخصص..."
                     />
                   </div>
                 )}
@@ -368,7 +368,7 @@ export function LeadContactsSection({ leadId, readOnly = false }: LeadContactsSe
                     <span
                       className={`text-sm whitespace-nowrap ${addIsPrimary ? 'text-amber-300' : 'text-zinc-300'}`}
                     >
-                      Primary
+                      أساسي
                     </span>
                   </label>
                 )}
@@ -376,7 +376,7 @@ export function LeadContactsSection({ leadId, readOnly = false }: LeadContactsSe
 
               <div className="flex justify-end">
                 <Button onClick={handleAddSubmit} disabled={!addContactId || !addRole} size="sm">
-                  Add to Lead
+                  إضافة للعميل
                 </Button>
               </div>
             </div>
@@ -393,9 +393,9 @@ export function LeadContactsSection({ leadId, readOnly = false }: LeadContactsSe
         isOpen={!!removingLcId}
         onClose={() => setRemovingLcId(null)}
         onConfirm={executeRemove}
-        title="Remove Contact"
-        message="Remove this contact from the lead? The contact record itself won't be deleted."
-        confirmLabel="Remove"
+        title="إزالة جهة الاتصال"
+        message="هل أنت متأكد من إزالة جهة الاتصال هذه من العميل؟ لن يتم حذف سجل جهة الاتصال نفسه."
+        confirmLabel="إزالة"
         variant="danger"
       />
     </>

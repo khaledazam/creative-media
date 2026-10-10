@@ -569,8 +569,8 @@ export default function SettingsPage() {
   const revokedKeys = apiKeys.filter((k) => k.revoked_at);
 
   return (
-    <div className="animate-fadeIn min-h-screen">
-      <Header title="Settings" />
+    <div className="animate-fadeIn min-h-screen" dir="rtl">
+      <Header title="الإعدادات" />
 
       <div className="p-4 lg:p-6 space-y-6 max-w-3xl mx-auto">
         {/* Profile Section */}
@@ -580,8 +580,8 @@ export default function SettingsPage() {
               <User className="text-brand-300" size={20} />
             </div>
             <div>
-              <h2 className="font-semibold text-white">Profile</h2>
-              <p className="text-sm text-zinc-400">Manage your account settings</p>
+              <h2 className="font-semibold text-white">الملف الشخصي</h2>
+              <p className="text-sm text-zinc-400">إدارة إعدادات حسابك</p>
             </div>
           </div>
 
@@ -602,13 +602,13 @@ export default function SettingsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              label="Display Name"
+              label="الاسم"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
-              placeholder="Your name"
+              placeholder="اسمك الكامل"
             />
             <Input
-              label="Email"
+              label="البريد الإلكتروني"
               type="email"
               value={userEmail}
               onChange={(e) => {
@@ -623,7 +623,7 @@ export default function SettingsPage() {
 
           <div className="mt-4">
             <Button onClick={handleSaveProfile} disabled={profileLoading}>
-              {profileLoading ? 'Saving...' : 'Save Changes'}
+              {profileLoading ? 'جاري الحفظ...' : 'حفظ التغييرات'}
             </Button>
           </div>
         </section>
@@ -649,9 +649,9 @@ export default function SettingsPage() {
               />
             </div>
             <div className="flex-1">
-              <h2 className="font-semibold text-white">Timezone</h2>
+              <h2 className="font-semibold text-white">المنطقة الزمنية</h2>
               <p className="text-sm text-zinc-400">
-                All times in the app will be shown in this timezone
+                سيتم عرض جميع الأوقات في النظام بهذه المنطقة الزمنية
               </p>
             </div>
           </div>
@@ -745,31 +745,31 @@ export default function SettingsPage() {
                 <Lock className="text-rose-400" size={20} />
               </div>
               <div>
-                <h2 className="font-semibold text-white">Change Password</h2>
-                <p className="text-sm text-zinc-400">Update your account password</p>
+                <h2 className="font-semibold text-white">تغيير كلمة المرور</h2>
+                <p className="text-sm text-zinc-400">تحديث كلمة مرور حسابك</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="New Password"
+                label="كلمة المرور الجديدة"
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Min. 6 characters"
+                placeholder="6 أحرف على الأقل"
               />
               <Input
-                label="Confirm Password"
+                label="تأكيد كلمة المرور"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Re-enter password"
+                placeholder="أعد إدخال كلمة المرور"
               />
             </div>
 
             <div className="mt-4">
               <Button onClick={handleChangePassword} disabled={passwordLoading}>
-                {passwordLoading ? 'Updating...' : 'Update Password'}
+                {passwordLoading ? 'جاري التحديث...' : 'تحديث كلمة المرور'}
               </Button>
             </div>
           </section>
@@ -782,18 +782,18 @@ export default function SettingsPage() {
               <Sun className="text-brand-300" size={20} />
             </div>
             <div>
-              <h2 className="font-semibold text-white">Appearance</h2>
+              <h2 className="font-semibold text-white">المظهر</h2>
               <p className="text-sm text-zinc-400">
-                Choose how the app looks on this account. Syncs across your devices.
+                اختر كيف يبدو النظام في هذا الحساب. سيتم مزامنة الخيار عبر أجهزتك.
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-medium text-zinc-200">Theme</p>
+              <p className="text-sm font-medium text-zinc-200">السمة</p>
               <p className="text-xs text-zinc-400 mt-0.5">
-                System follows your device&apos;s light or dark setting.
+                حسب النظام يتبع إعدادات جهازك الحالية (فاتح أو داكن).
               </p>
             </div>
             <RadioGroup
@@ -807,7 +807,7 @@ export default function SettingsPage() {
                   label: (
                     <span className="inline-flex items-center gap-1.5">
                       <Monitor size={14} />
-                      System
+                      حسب النظام
                     </span>
                   ),
                 },
@@ -816,7 +816,7 @@ export default function SettingsPage() {
                   label: (
                     <span className="inline-flex items-center gap-1.5">
                       <Sun size={14} />
-                      Light
+                      فاتح
                     </span>
                   ),
                 },
@@ -825,7 +825,7 @@ export default function SettingsPage() {
                   label: (
                     <span className="inline-flex items-center gap-1.5">
                       <Moon size={14} />
-                      Dark
+                      داكن
                     </span>
                   ),
                 },
@@ -841,8 +841,8 @@ export default function SettingsPage() {
               <Bell className="text-brand-300" size={20} />
             </div>
             <div>
-              <h2 className="font-semibold text-white">Notification Preferences</h2>
-              <p className="text-sm text-zinc-400">Choose which notifications you receive</p>
+              <h2 className="font-semibold text-white">إعدادات الإشعارات</h2>
+              <p className="text-sm text-zinc-400">اختر الإشعارات التي ترغب بتلقيها</p>
             </div>
           </div>
 

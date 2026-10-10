@@ -74,8 +74,8 @@ function ProjectsContent() {
   };
 
   const buildActions = (p: Project): RowAction[] => [
-    { label: 'Edit', icon: <Edit size={14} />, onClick: () => handleEdit(p) },
-    { label: 'Delete', icon: <Trash2 size={14} />, variant: 'danger', onClick: () => setDeletingProjectId(p.id) },
+    { label: 'تعديل', icon: <Edit size={14} />, onClick: () => handleEdit(p) },
+    { label: 'حذف', icon: <Trash2 size={14} />, variant: 'danger', onClick: () => setDeletingProjectId(p.id) },
   ];
 
   const mobileCard = (p: Project) => {
@@ -104,7 +104,7 @@ function ProjectsContent() {
         </div>
 
         <p className="mt-3 text-sm text-zinc-400 line-clamp-2">
-          {p.description || <span className="text-zinc-600 italic">No description</span>}
+          {p.description || <span className="text-zinc-600 italic">بدون وصف</span>}
         </p>
 
         {total > 0 && (
@@ -132,8 +132,8 @@ function ProjectsContent() {
   const columns: Column<Project>[] = [
     {
       key: 'name',
-      header: 'Name',
-      width: 'w-[19%]',
+      header: 'اسم المشروع',
+      width: 'w-[15%]',
       sortValue: (p) => p.name.toLowerCase(),
       render: (p) => (
         <div className="flex items-center gap-2 min-w-0">
@@ -147,20 +147,13 @@ function ProjectsContent() {
           >
             {p.name}
           </Link>
-          {isAgentsEnabled && canManageAgents && p.autonomous_enabled && (
-            <Tooltip content="Autonomous agents enabled">
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-white/[0.06] text-zinc-300 flex-shrink-0">
-                <Bot size={12} />
-              </span>
-            </Tooltip>
-          )}
         </div>
       ),
     },
     {
       key: 'client',
-      header: 'Client',
-      width: 'w-[14%]',
+      header: 'العميل',
+      width: 'w-[12%]',
       className: 'hidden md:table-cell',
       render: (p) => {
         const client = getPrimaryClient(p.id);
@@ -170,23 +163,56 @@ function ProjectsContent() {
       },
     },
     {
-      key: 'description',
-      header: 'Description',
-      width: 'w-[29%]',
+      key: 'type',
+      header: 'نوع المشروع',
+      width: 'w-[12%]',
       className: 'hidden lg:table-cell',
-      render: (p) => p.description
-        ? <span className="text-zinc-400 truncate block">{p.description}</span>
-        : <span className="text-zinc-600 italic">No description</span>,
+      render: (p) => {
+        const text = (p.name + ' ' + (p.description || '')).toLowerCase();
+        let projectType = 'تشطيبات داخلية';
+        if (text.includes('كلادينج') || text.includes('واجهة') || text.includes('واجهات')) {
+          projectType = 'واجهات وكلادينج';
+        } else if (text.includes('مكتب') || text.includes('مكاتب') || text.includes('مقر') || text.includes('إدار')) {
+          projectType = 'تجهيز مكاتب ومقرات';
+        } else if (text.includes('كافيه') || text.includes('مطعم')) {
+          projectType = 'مطاعم وكافيهات';
+        }
+        return <span className="text-zinc-300">{projectType}</span>;
+      },
+    },
+    {
+      key: 'status',
+      header: 'المرحلة الحالية',
+      width: 'w-[12%]',
+      render: (p) => {
+        const stageLabels: Record<string, { label: string; color: string }> = {
+          site_visit: { label: 'معاينة الموقع', color: 'bg-blue-500/15 text-blue-400 border-blue-500/30' },
+          measurement: { label: 'رفع المقاسات', color: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30' },
+          design: { label: 'التصميم والمخططات', color: 'bg-purple-500/15 text-purple-400 border-purple-500/30' },
+          client_approval: { label: 'اعتماد العميل', color: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
+          material_prep: { label: 'تجهيز الخامات', color: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30' },
+          manufacturing: { label: 'التصنيع والتجهيز', color: 'bg-orange-500/15 text-orange-400 border-orange-500/30' },
+          installation: { label: 'التركيبات بالموقع', color: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30' },
+          review: { label: 'المراجعة والاستلام', color: 'bg-teal-500/15 text-teal-400 border-teal-500/30' },
+          delivery: { label: 'التسليم النهائي', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
+        };
+        const current = stageLabels[p.workflowStage || 'site_visit'] || stageLabels.site_visit;
+        return (
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${current.color}`}>
+            {current.label}
+          </span>
+        );
+      },
     },
     {
       key: 'progress',
-      header: 'Progress',
+      header: 'نسبة الإنجاز',
       width: 'w-[16%]',
       className: 'hidden sm:table-cell',
       sortValue: (p) => getProgress(p).pct,
       render: (p) => {
         const { pct, total } = getProgress(p);
-        if (total === 0) return <span className="text-zinc-600 italic text-xs">No tasks</span>;
+        if (total === 0) return <span className="text-zinc-600 italic text-xs">لا يوجد مهام</span>;
         return (
           <div className="flex items-center gap-2 min-w-[120px]">
             <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
@@ -199,7 +225,7 @@ function ProjectsContent() {
     },
     {
       key: 'due',
-      header: 'Due',
+      header: 'تاريخ التسليم',
       width: 'w-[10%]',
       className: 'hidden sm:table-cell',
       sortValue: (p) => p.due_date ? parseDateOnly(p.due_date).getTime() : Infinity,
@@ -207,22 +233,23 @@ function ProjectsContent() {
         ? (
           <span className="inline-flex items-center gap-1 text-zinc-300 whitespace-nowrap">
             <Calendar size={14} className="text-zinc-500" />
-            {parseDateOnly(p.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            {parseDateOnly(p.due_date).toLocaleDateString('en-GB')}
           </span>
         )
         : <span className="text-zinc-600 italic">—</span>,
     },
     {
       key: 'team',
-      header: 'Team',
+      header: 'مدير المشروع',
       width: 'w-[12%]',
       render: (p) => {
         const members = team.filter(m => p.member_ids.includes(m.id));
-        return members.length > 0
+        const manager = members[0];
+        return manager
           ? (
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 text-xs text-zinc-500"><Users size={13} />{members.length}</span>
-              <AvatarGroup users={members} max={3} size="xs" />
+              <AvatarGroup users={[manager]} max={1} size="xs" />
+              <span className="text-xs text-zinc-300 truncate">{manager.name}</span>
             </div>
           )
           : <span className="text-zinc-600 italic text-xs">—</span>;
@@ -230,7 +257,7 @@ function ProjectsContent() {
     },
     ...(canManageProjects ? [{
       key: 'actions',
-      header: <span className="sr-only">Actions</span>,
+      header: <span className="sr-only">الإجراءات</span>,
       align: 'right' as const,
       width: 'w-12',
       render: (p: Project) => <RowActionsMenu actions={buildActions(p)} label={`Actions for ${p.name}`} />,
@@ -255,12 +282,12 @@ function ProjectsContent() {
   return (
     <>
       <Header
-        title="Projects"
-        subtitle={<span className="hidden sm:inline">{projects.length} total projects</span>}
-        searchPlaceholder="Search projects..."
+        title="المشاريع"
+        subtitle={<span className="hidden sm:inline">{projects.length} مشروع</span>}
+        searchPlaceholder="البحث في المشاريع..."
         actions={canManageProjects ? (
           <Button onClick={() => setIsFormOpen(true)} icon={<Plus size={16} />}>
-            New Project
+            مشروع جديد
           </Button>
         ) : undefined}
       />
@@ -271,15 +298,15 @@ function ProjectsContent() {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/[0.06] flex items-center justify-center">
               <FolderKanban className="text-zinc-500" size={32} />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">No projects yet</h3>
-            <p className="text-zinc-400 mb-4">{canManageProjects ? 'Create your first project to get started' : 'No projects are assigned to you'}</p>
-            {canManageProjects && <Button onClick={() => setIsFormOpen(true)}>Create Project</Button>}
+            <h3 className="text-lg font-semibold text-white mb-2">لا توجد مشاريع بعد</h3>
+            <p className="text-zinc-400 mb-4">{canManageProjects ? 'قم بإنشاء مشروعك الأول للبدء' : 'لا توجد مشاريع مسندة إليك'}</p>
+            {canManageProjects && <Button onClick={() => setIsFormOpen(true)}>إنشاء مشروع</Button>}
           </div>
         ) : (
           <>
-            {activeProjects.length > 0 && renderSection('active', 'Active', activeProjects)}
-            {completedProjects.length > 0 && renderSection('completed', 'Completed', completedProjects)}
-            {archivedProjects.length > 0 && renderSection('archived', 'Archived', archivedProjects)}
+            {activeProjects.length > 0 && renderSection('active', 'نشط', activeProjects)}
+            {completedProjects.length > 0 && renderSection('completed', 'مكتمل', completedProjects)}
+            {archivedProjects.length > 0 && renderSection('archived', 'مؤرشف', archivedProjects)}
           </>
         )}
       </div>
@@ -294,9 +321,9 @@ function ProjectsContent() {
         isOpen={!!deletingProjectId}
         onClose={() => setDeletingProjectId(null)}
         onConfirm={executeDelete}
-        title="Delete Project"
-        message="This will permanently delete the project and all its tasks. This action cannot be undone."
-        confirmLabel="Delete"
+        title="حذف المشروع"
+        message="هل أنت متأكد من حذف هذا المشروع وجميع المهام المرتبطة به؟ لا يمكن التراجع عن هذا الإجراء."
+        confirmLabel="حذف"
         variant="danger"
       />
     </>

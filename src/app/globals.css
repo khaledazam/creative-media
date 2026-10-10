@@ -21,7 +21,7 @@
 */
 
 @theme {
-  --font-sans: var(--font-dm-sans), 'DM Sans', system-ui, sans-serif;
+  --font-sans: var(--font-alexandria), 'Alexandria', system-ui, sans-serif;
   --font-mono: var(--font-dm-mono), 'DM Mono', monospace;
 
   /* Brand color scale ; defaults match site-config.ts (teal); ThemeProvider overrides at runtime */
@@ -112,6 +112,16 @@
 
   --radius-input: 0.5rem;
   --radius-input-sm: 0.375rem;
+
+  /* Architectural Luxury Color System */
+  --color-arch-charcoal: #111412;
+  --color-arch-black: #171a1b;
+  --color-arch-gold: #b89a67;
+  --color-arch-gold-light: #d4b98b;
+  --color-arch-gold-dark: #967b4d;
+  --color-arch-ivory: #f8f6f1;
+  --color-arch-stone: #eae5db;
+  --color-arch-olive: #465248;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -1031,3 +1041,44 @@ a.bg-brand-500 {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* ── Modern Landing Page Animations ──────────────────── */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(50%); }
+}
+
+@keyframes marquee-rtl {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 0.65; transform: scale(1.05); }
+}
+
+@keyframes shine-sweep {
+  0% { transform: translateX(-100%) skewX(-20deg); }
+  100% { transform: translateX(200%) skewX(-20deg); }
+}
+
+.animate-marquee-rtl {
+  display: flex;
+  width: max-content;
+  animation: marquee-rtl 25s linear infinite;
+}
+
+.animate-float-slow {
+  animation: float-slow 4s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 5s ease-in-out infinite;
+}
+

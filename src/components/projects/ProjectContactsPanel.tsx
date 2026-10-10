@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/inputs/Select';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { ContactForm } from '@/components/contacts/ContactForm';
+import { ContactForm } from '@/components/customers/ContactForm';
 import Modal from '@/components/ui/Modal';
 import { TextInput } from '@/components/ui/inputs/TextInput';
 import { ProjectContact, CONTACT_ROLES } from '@/lib/types';
@@ -163,7 +163,7 @@ export function ProjectContactsPanel({ isOpen, onClose, projectId }: ProjectCont
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <Link
-                            href={`/contacts/${contact.id}`}
+                            href={`/customers/${contact.id}`}
                             className="font-medium text-white text-sm hover:text-brand-300 transition-colors truncate inline-flex items-center gap-1"
                           >
                             {contact.name}

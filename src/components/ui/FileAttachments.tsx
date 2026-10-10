@@ -321,7 +321,7 @@ export function FileAttachments({ entityType, entityId }: FileAttachmentsProps) 
         <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.08] flex-shrink-0">
           <div className="flex items-center gap-2">
             <Paperclip size={18} className="text-zinc-400" />
-            <h2 className="font-semibold text-white">Files ({files.length})</h2>
+            <h2 className="font-semibold text-white">الملفات ({files.length})</h2>
           </div>
           {canUpload && (
             <div className="flex items-center gap-2">
@@ -333,7 +333,7 @@ export function FileAttachments({ entityType, entityId }: FileAttachmentsProps) 
                 className="liquid-glass inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors"
               >
                 <FileText size={14} />
-                Note
+                ملاحظة
               </button>
               <label className="cursor-pointer">
                 <FileInput
@@ -345,7 +345,7 @@ export function FileAttachments({ entityType, entityId }: FileAttachmentsProps) 
                 <span className="liquid-primary inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white rounded-lg transition-colors cursor-pointer">
                   <Upload size={14} />
                   <span className="hidden min-[400px]:inline">
-                    {uploading ? 'Uploading...' : 'Upload'}
+                    {uploading ? 'جاري الرفع...' : 'رفع ملف'}
                   </span>
                 </span>
               </label>
@@ -448,11 +448,11 @@ export function FileAttachments({ entityType, entityId }: FileAttachmentsProps) 
             <div className="w-10 h-10 rounded-full bg-white/[0.06] flex items-center justify-center mb-3">
               <Paperclip size={18} className="text-zinc-500" />
             </div>
-            <p className="text-sm font-medium text-zinc-400">No files attached yet</p>
+            <p className="text-sm font-medium text-zinc-400">لا توجد ملفات مرفقة بعد</p>
             <p className="text-xs text-zinc-500 mt-1">
               {canUpload
-                ? 'Upload files to attach them to this project'
-                : 'No files are available for this project'}
+                ? 'قم برفع الملفات لربطها بهذا الكيان (تصميمات، عقود، عروض أسعار...)'
+                : 'لا توجد ملفات متاحة حالياً'}
             </p>
           </div>
         )}
@@ -480,14 +480,14 @@ export function FileAttachments({ entityType, entityId }: FileAttachmentsProps) 
               className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-zinc-300 hover:bg-white/[0.03] transition-colors"
             >
               <Eye size={14} className="text-zinc-500" />
-              Preview
+              معاينة
             </button>
             <button
               onClick={() => handleDownload(currentMenuFile.file_url, currentMenuFile.name)}
               className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-zinc-300 hover:bg-white/[0.03] transition-colors"
             >
               <Download size={14} className="text-zinc-500" />
-              Download
+              تحميل
             </button>
             {canManageFiles && (
               <button
@@ -499,7 +499,7 @@ export function FileAttachments({ entityType, entityId }: FileAttachmentsProps) 
                 className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-zinc-300 hover:bg-white/[0.03] transition-colors"
               >
                 <Pencil size={14} className="text-zinc-500" />
-                Rename
+                إعادة تسمية
               </button>
             )}
             {isProject && canManageFiles && (
@@ -515,12 +515,12 @@ export function FileAttachments({ entityType, entityId }: FileAttachmentsProps) 
                   {currentMenuFile.visibility === 'external' ? (
                     <>
                       <ShieldOff size={14} className="text-zinc-500" />
-                      Remove from Portal
+                      إزالة من بوابة العميل
                     </>
                   ) : (
                     <>
                       <Share2 size={14} className="text-zinc-500" />
-                      Share to Portal
+                      مشاركة مع بوابة العميل
                     </>
                   )}
                 </button>
@@ -534,7 +534,7 @@ export function FileAttachments({ entityType, entityId }: FileAttachmentsProps) 
                   className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-red-400 hover:bg-red-500/15 transition-colors"
                 >
                   <Trash2 size={14} />
-                  Delete
+                  حذف
                 </button>
               </>
             )}

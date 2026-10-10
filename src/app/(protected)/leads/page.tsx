@@ -21,22 +21,22 @@ import { useAuth } from '@/lib/auth-context';
 import { hasPermission } from '@/lib/access-control';
 
 const PIPELINE_STAGES: { status: Lead['status']; label: string }[] = [
-  { status: 'new', label: 'New' },
-  { status: 'contacted', label: 'Contacted' },
-  { status: 'qualified', label: 'Qualified' },
-  { status: 'proposal', label: 'Proposal' },
+  { status: 'new', label: 'جديد' },
+  { status: 'contacted', label: 'تم التواصل' },
+  { status: 'qualified', label: 'تمت المعاينة' },
+  { status: 'proposal', label: 'إعداد عرض السعر' },
 ];
 
 type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info' | 'purple';
 
 const SOURCE_CONFIG: Record<Lead['source'], { label: string; variant: BadgeVariant }> = {
-  referral: { label: 'Referral', variant: 'default' },
-  website: { label: 'Website', variant: 'default' },
-  social: { label: 'Social', variant: 'default' },
-  cold_outreach: { label: 'Cold Outreach', variant: 'default' },
-  event: { label: 'Event', variant: 'default' },
-  network: { label: 'Network', variant: 'default' },
-  other: { label: 'Other', variant: 'default' },
+  referral: { label: 'إحالة', variant: 'default' },
+  website: { label: 'موقع الشركة', variant: 'default' },
+  social: { label: 'تواصل اجتماعي', variant: 'default' },
+  cold_outreach: { label: 'تواصل مباشر', variant: 'default' },
+  event: { label: 'فعالية', variant: 'default' },
+  network: { label: 'شبكة علاقات', variant: 'default' },
+  other: { label: 'أخرى', variant: 'default' },
 };
 
 // Ordered budget buckets (source of truth is the budget_range lead field), used to
@@ -46,13 +46,13 @@ const BUDGET_OPTIONS = LEAD_FIELD_DEFINITIONS.find(f => f.key === 'budget_range'
 const formatTimeAgo = (dateStr: string) => {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return 'الآن';
+  if (mins < 60) return `منذ ${mins} دقيقة`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return `منذ ${hours} ساعة`;
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  if (days < 7) return `منذ ${days} يوم`;
+  return new Date(dateStr).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' });
 };
 
 export default function LeadsPage() {
@@ -103,9 +103,9 @@ export default function LeadsPage() {
   const buildActions = (l: Lead): RowAction[] => {
     const canConvert = l.status !== 'won' && l.status !== 'lost';
     return [
-      { label: 'Edit', icon: <Edit size={14} />, onClick: () => handleEdit(l) },
-      ...(canConvert ? [{ label: 'Convert', icon: <ArrowRightCircle size={14} />, variant: 'success' as const, onClick: () => setConvertingLead(l) }] : []),
-      { label: 'Delete', icon: <Trash2 size={14} />, variant: 'danger' as const, onClick: () => setDeletingLeadId(l.id) },
+      { label: 'تعديل', icon: <Edit size={14} />, onClick: () => handleEdit(l) },
+      ...(canConvert ? [{ label: 'تحويل', icon: <ArrowRightCircle size={14} />, variant: 'success' as const, onClick: () => setConvertingLead(l) }] : []),
+      { label: 'حذف', icon: <Trash2 size={14} />, variant: 'danger' as const, onClick: () => setDeletingLeadId(l.id) },
     ];
   };
 
@@ -122,7 +122,7 @@ export default function LeadsPage() {
             >
               {l.name}
             </Link>
-            <p className={`text-sm truncate ${l.company ? 'text-zinc-400' : 'text-zinc-600 italic'}`}>{l.company || 'No company'}</p>
+            <p className={`text-sm truncate ${l.company ? 'text-zinc-400' : 'text-zinc-600 italic'}`}>{l.company || 'بدون شركة'}</p>
           </div>
           {canManageLeads && <RowActionsMenu actions={buildActions(l)} label={`Actions for ${l.name}`} />}
         </div>
@@ -138,14 +138,14 @@ export default function LeadsPage() {
         <div className="mt-3 flex items-center gap-2 text-sm">
           {budgetForLead(l.id)
             ? <span className="text-zinc-200 font-medium">{budgetForLead(l.id)}</span>
-            : <span className="text-zinc-600 italic">No budget range</span>}
+            : <span className="text-zinc-600 italic">بدون ميزانية</span>}
         </div>
 
         <div className="mt-3 flex items-center justify-between pt-3 border-t border-white/[0.06]">
           {members.length > 0
             ? <AvatarGroup users={members} max={3} size="xs" />
-            : <span className="text-xs text-zinc-600 italic">No team</span>}
-          <span className="text-xs text-zinc-500 whitespace-nowrap">Updated {formatTimeAgo(l.updated_at)}</span>
+            : <span className="text-xs text-zinc-600 italic">بدون فريق</span>}
+          <span className="text-xs text-zinc-500 whitespace-nowrap">{formatTimeAgo(l.updated_at)}</span>
         </div>
       </div>
     );
@@ -154,7 +154,7 @@ export default function LeadsPage() {
   const columns: Column<Lead>[] = [
     {
       key: 'name',
-      header: 'Name',
+      header: 'الاسم',
       width: 'w-[16%]',
       sortValue: (l) => l.name.toLowerCase(),
       render: (l) => (
@@ -169,33 +169,33 @@ export default function LeadsPage() {
     },
     {
       key: 'company',
-      header: 'Company',
+      header: 'الشركة',
       width: 'w-[15%]',
       className: 'hidden sm:table-cell',
       sortValue: (l) => l.company.toLowerCase(),
       render: (l) => l.company
         ? <span className="text-zinc-300">{l.company}</span>
-        : <span className="text-zinc-600 italic">No company</span>,
+        : <span className="text-zinc-600 italic">بدون شركة</span>,
     },
     {
       key: 'source',
-      header: 'Source',
+      header: 'المصدر',
       width: 'w-[11%]',
       className: 'hidden md:table-cell',
       render: (l) => <Badge variant={SOURCE_CONFIG[l.source].variant}>{SOURCE_CONFIG[l.source].label}</Badge>,
     },
     {
       key: 'email',
-      header: 'Email',
+      header: 'البريد الإلكتروني',
       width: 'w-[18%]',
       className: 'hidden lg:table-cell',
       render: (l) => l.email
         ? <span className="text-zinc-300 truncate block">{l.email}</span>
-        : <span className="text-zinc-600 italic">No email</span>,
+        : <span className="text-zinc-600 italic">بدون بريد</span>,
     },
     {
       key: 'budget',
-      header: 'Budget',
+      header: 'الميزانية',
       width: 'w-[12%]',
       className: 'hidden sm:table-cell',
       sortValue: (l) => {
@@ -211,7 +211,7 @@ export default function LeadsPage() {
     },
     {
       key: 'team',
-      header: 'Team',
+      header: 'الفريق',
       width: 'w-[8%]',
       className: 'hidden xl:table-cell',
       render: (l) => {
@@ -223,7 +223,7 @@ export default function LeadsPage() {
     },
     {
       key: 'updated',
-      header: 'Updated',
+      header: 'تحديث',
       align: 'right',
       width: 'w-[10%]',
       className: 'hidden lg:table-cell',
@@ -232,7 +232,7 @@ export default function LeadsPage() {
     },
     ...(canManageLeads ? [{
       key: 'actions',
-      header: <span className="sr-only">Actions</span>,
+      header: <span className="sr-only">الإجراءات</span>,
       align: 'right' as const,
       width: 'w-12',
       render: (l: Lead) => <RowActionsMenu actions={buildActions(l)} label={`Actions for ${l.name}`} />,
@@ -257,12 +257,12 @@ export default function LeadsPage() {
   return (
     <div className="animate-fadeIn min-h-screen">
       <Header
-        title="Leads"
-        subtitle={<span className="hidden sm:inline">{activeLeads.length} active leads</span>}
-        searchPlaceholder="Search leads by name, company, or email..."
+        title="العملاء المحتملون"
+        subtitle={<span className="hidden sm:inline">{activeLeads.length} عميل محتمل نشط</span>}
+        searchPlaceholder="البحث بالاسم، الشركة، أو البريد الإلكتروني..."
         actions={canManageLeads ? (
           <Button onClick={() => setIsFormOpen(true)} icon={<Plus size={16} />}>
-            Add Lead
+            إضافة عميل
           </Button>
         ) : undefined}
       />
@@ -273,9 +273,9 @@ export default function LeadsPage() {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/[0.06] flex items-center justify-center">
               <Target className="text-zinc-500" size={32} />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">No leads yet</h3>
-            <p className="text-zinc-400 mb-4">{canManageLeads ? 'Add your first lead to start building your pipeline' : 'No leads are available to you'}</p>
-            {canManageLeads && <Button onClick={() => setIsFormOpen(true)}>Add Lead</Button>}
+            <h3 className="text-lg font-semibold text-white mb-2">لا يوجد عملاء محتملون بعد</h3>
+            <p className="text-zinc-400 mb-4">{canManageLeads ? 'أضف أول عميل محتمل للبدء' : 'لا توجد بيانات متاحة لك'}</p>
+            {canManageLeads && <Button onClick={() => setIsFormOpen(true)}>إضافة عميل</Button>}
           </div>
         ) : (
           <>
@@ -285,8 +285,8 @@ export default function LeadsPage() {
               return renderSection(stage.status, stage.label, undefined, rows);
             })}
 
-            {wonLeads.length > 0 && renderSection('won', 'Won', '#34d399', wonLeads)}
-            {lostLeads.length > 0 && renderSection('lost', 'Lost', '#f87171', lostLeads)}
+            {wonLeads.length > 0 && renderSection('won', 'تم التعاقد', '#34d399', wonLeads)}
+            {lostLeads.length > 0 && renderSection('lost', 'مرفوض', '#f87171', lostLeads)}
           </>
         )}
       </div>
@@ -308,9 +308,9 @@ export default function LeadsPage() {
         isOpen={!!deletingLeadId}
         onClose={() => setDeletingLeadId(null)}
         onConfirm={executeDelete}
-        title="Delete Lead"
-        message="This will permanently delete this lead. This action cannot be undone."
-        confirmLabel="Delete"
+        title="حذف العميل المحتمل"
+        message="هل أنت متأكد من حذف العميل المحتمل نهائياً؟ لا يمكن التراجع عن هذا الإجراء."
+        confirmLabel="حذف"
         variant="danger"
       />
     </div>

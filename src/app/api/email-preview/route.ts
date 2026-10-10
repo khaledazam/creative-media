@@ -153,7 +153,7 @@ export async function GET(req: NextRequest) {
         label: 'Notifications (Postmark)',
         host: 'smtp.postmarkapp.com',
         port: 587,
-        fromName: 'Valiance Media',
+        fromName: 'Creative Media',
         fromEmail: 'hello@valiancemedia.com',
       });
       html = result.html;

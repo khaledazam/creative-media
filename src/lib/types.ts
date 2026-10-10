@@ -13,11 +13,17 @@ export interface Project {
   description: string;
   color: string;
   status: 'active' | 'completed' | 'archived';
+  phase?: 'تصميم' | 'استخراج تصاريح' | 'تنفيذ أعمال' | 'تسليم نهائي';
+  location?: string;
+  project_manager_id?: string;
+  contract_id?: string;
+  paid_amount?: number;
   start_date: string | null;
   due_date: string | null;
   hourly_tracking: boolean;
   hourly_rate: number | null;
   time_tracking_enabled?: boolean;
+  workflowStage?: ProjectWorkflowStage;
   client_time_billing?: 'hourly' | 'included';
   budget_type: 'hours' | 'amount' | null;
   budget_value: number | null;
@@ -171,16 +177,16 @@ export interface LeadFieldDefinition {
 
 export const LEAD_FIELD_DEFINITIONS: LeadFieldDefinition[] = [
   // Business Identity
-  { key: 'website', label: 'Website', type: 'url', category: 'Business Identity', placeholder: 'https://example.com' },
-  { key: 'industry', label: 'Industry', type: 'select', category: 'Business Identity', options: ['Tech', 'Healthcare', 'Retail', 'Hospitality', 'Real Estate', 'F&B', 'Entertainment', 'Education', 'Nonprofit', 'Professional Services', 'Construction', 'Fitness/Wellness', 'Automotive', 'Legal', 'Other'] },
-  { key: 'product_service', label: 'Product / Service', type: 'text', category: 'Business Identity', placeholder: 'What they sell or provide' },
-  { key: 'location', label: 'Location', type: 'text', category: 'Business Identity', placeholder: 'City, State' },
+  { key: 'website', label: 'الموقع الإلكتروني', type: 'url', category: 'Business Identity', placeholder: 'https://example.com' },
+  { key: 'industry', label: 'المجال', type: 'select', category: 'Business Identity', options: ['تجاري', 'طبي', 'مطاعم وكافيهات', 'شركات', 'تعليمي', 'أخرى'] },
+  { key: 'product_service', label: 'الخدمة الأساسية للعميل', type: 'text', category: 'Business Identity', placeholder: 'ماذا يبيعون' },
+  { key: 'location', label: 'موقع العمل', type: 'text', category: 'Business Identity', placeholder: 'المحافظة، المنطقة' },
 
   // Opportunity
-  { key: 'services_interested', label: 'Services Interested In', type: 'multi_select', category: 'Opportunity', options: ['Branding', 'Web Design', 'Web Dev', 'Social Media', 'Video', 'SEO', 'Paid Ads', 'Content Marketing', 'Email Marketing', 'Print Design', 'Photography', 'Consulting', 'Other'] },
-  { key: 'budget_range', label: 'Budget Range', type: 'select', category: 'Opportunity', options: ['Under $1K', '$1K-$5K', '$5K-$15K', '$15K-$50K', '$50K-$100K', '$100K+'] },
-  { key: 'timeline', label: 'Timeline', type: 'select', category: 'Opportunity', options: ['Immediate', '1-3 Months', '3-6 Months', '6+ Months', 'Exploratory'] },
-  { key: 'referred_by', label: 'Referred By', type: 'text', category: 'Opportunity', placeholder: 'Name or source' },
+  { key: 'services_interested', label: 'الخدمات المطلوبة', type: 'multi_select', category: 'Opportunity', options: ['دعاية وإعلان', 'يافطات إعلانية', 'كلادينج', 'تشطيبات داخلية', 'تشطيبات خارجية', 'هوية بصرية', 'مطبوعات', 'تركيبات'] },
+  { key: 'budget_range', label: 'الميزانية المتوقعة', type: 'select', category: 'Opportunity', options: ['أقل من 10K', '10K-50K', '50K-100K', '100K-500K', 'أكثر من 500K'] },
+  { key: 'timeline', label: 'الإطار الزمني', type: 'select', category: 'Opportunity', options: ['فوري', 'خلال شهر', 'خلال 3 أشهر', 'غير محدد'] },
+  { key: 'referred_by', label: 'إحالة بواسطة', type: 'text', category: 'Opportunity', placeholder: 'اسم الشخص أو المصدر' },
 
   // Assessment
   { key: 'priority', label: 'Priority', type: 'select', category: 'Assessment', options: ['Hot', 'Warm', 'Cold'] },
@@ -233,6 +239,10 @@ export interface Task {
   comments: Comment[];
   sort_order?: number;
   task_type?: TaskType | null;
+  task_category?: 'تصميم' | 'توريد' | 'تنفيذ' | 'إشراف' | 'تسليم';
+  estimated_cost?: number;
+  actual_cost?: number;
+  subcontractor_id?: string;
   ai_readiness?: AiReadiness | null;
   acceptance_criteria: AcceptanceCriterion[];
   /** Independent PR review rounds, newest last. Absent outside review flows. */
@@ -1270,3 +1280,164 @@ export interface ProjectCredentialListItem {
  * username/password/url/notes.
  */
 export type CredentialPayload = Record<string, string>;
+
+// ============================================================
+// CONTRACT MANAGEMENT (PHASE 1)
+// ============================================================
+
+export const CONTRACT_STATUSES = [
+  'draft',
+  'ready',
+  'sent',
+  'viewed',
+  'pending_confirmation',
+  'confirmed',
+  'rejected',
+  'completed',
+  'cancelled'
+] as const;
+export type ContractStatus = typeof CONTRACT_STATUSES[number];
+
+export interface ContractTerm {
+  id: string;
+  title: string;
+  content: string;
+}
+
+export interface ContractPaymentSchedule {
+  id: string;
+  description: string;
+  amount: number;
+  dueDate: string;
+}
+
+export interface ContractActivity {
+  id: string;
+  contractId: string;
+  version: number;
+  event: 'created' | 'version_created' | 'sent' | 'viewed' | 'otp_requested' | 'confirmed' | 'rejected' | 'cancelled';
+  actorId?: string; // system, user, or client
+  actorName: string;
+  date: string;
+  metadata?: Record<string, any>;
+}
+
+export interface Contract {
+  id: string;
+  contractNumber: string;
+  customerId: string;
+  quotationId?: string;
+  projectId?: string;
+  version: number;
+  status: ContractStatus;
+  title: string;
+  serviceType: string;
+  
+  // Sections
+  customerInfo: {
+    name: string;
+    company: string;
+    phone: string;
+    email: string;
+    address: string;
+  };
+  projectInfo: {
+    name: string;
+    description: string;
+    location: string;
+  };
+  financialTerms: {
+    contractValue: number;
+    downPayment: number;
+    taxRate: number; // e.g. 0.14
+    totalAmount: number;
+    paymentSchedule: ContractPaymentSchedule[];
+  };
+  timeline: {
+    startDate: string;
+    expectedDeliveryDate: string;
+    durationDays: number;
+  };
+  terms: ContractTerm[];
+  
+  // Integrity & Security
+  contentHash: string | null;
+  sentAt: string | null;
+  viewedAt: string | null;
+  confirmedAt: string | null;
+  confirmedPhone: string | null;
+  verificationMethod: string | null;
+  
+  activities: ContractActivity[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContractTemplate {
+  id: string;
+  name: string;
+  serviceType: string;
+  defaultTerms: ContractTerm[];
+}
+
+export const PROJECT_WORKFLOW_STAGES = [
+  'site_visit',
+  'measurement',
+  'design',
+  'client_approval',
+  'material_prep',
+  'manufacturing',
+  'installation',
+  'review',
+  'delivery'
+] as const;
+export type ProjectWorkflowStage = typeof PROJECT_WORKFLOW_STAGES[number];
+
+
+// ============================================================
+// QUOTATIONS
+// ============================================================
+export type QuotationStatus = 'مسودة' | 'تم الإرسال' | 'تمت المشاهدة' | 'مقبول' | 'مرفوض' | 'منتهي';
+
+export interface QuotationItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unit: string;
+  unitPrice: number;
+  discount: number;
+  total: number;
+}
+
+export interface Quotation {
+  id: string;
+  quotationNumber: string;
+  contactId: string;
+  projectId: string | null;
+  serviceType: string;
+  status: QuotationStatus;
+  subtotal: number;
+  discount: number;
+  tax: number;
+  total: number;
+  validUntil: string;
+  notes: string;
+  createdAt: string;
+  items: QuotationItem[];
+}
+export type SiteVisitStatus = 'مجدولة' | 'تمت المعاينة' | 'تم الإلغاء';
+
+export interface SiteVisit {
+  id: string;
+  projectId: string;
+  contactId: string;
+  visitDate: string;
+  location: string;
+  measurements: string;
+  notes: string;
+  assigneeId: string;
+  status: SiteVisitStatus;
+  photos: string[];
+  created_at: string;
+  updated_at: string;
+}

@@ -89,7 +89,7 @@ export function PortalHeader({
         <p className="vm-lede mt-5 max-w-[60ch] sm:mt-6">
           {welcomeMessage || (
             <>
-              Everything about your project, in <em className="vm-serif">one place.</em>
+              كل شيء يخص مشروعك في <em className="vm-serif">مكان واحد.</em>
             </>
           )}
         </p>
@@ -103,8 +103,8 @@ export function PortalFooter() {
     <footer className={`${STAGE} pb-10 pt-16 sm:pt-20`}>
       <div className="vm-hr" aria-hidden="true" />
       <div className="mt-6 flex flex-col gap-2 text-[13px] sm:flex-row sm:items-center sm:justify-between">
-        <span className="vm-mono vm-faint">Prepared by {siteConfig.name}</span>
-        <span className="vm-faint">Questions? Reply to any email from us.</span>
+        <span className="vm-mono vm-faint">تم الإعداد بواسطة {siteConfig.name}</span>
+        <span className="vm-faint">لديك أسئلة؟ تواصل معنا مباشرة.</span>
       </div>
     </footer>
   );

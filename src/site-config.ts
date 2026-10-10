@@ -21,10 +21,10 @@
  *  and are where a future light mode will be defined.
  */
 export const siteConfig = {
-  name: 'Valiance Media',
-  tagline: 'Client Portal',
+  name: 'Creative Media',
+  tagline: 'نظام إدارة وتشغيل Creative Media',
   description:
-    'Manage projects, track leads, and collaborate with our team, all in one place.',
+    'للدعاية والإعلان والتشطيبات والواجهات',
 
   // Logo: swap the asset served at /api/logo. Dark chrome (sidebar, login) asks
   // for `logo-dark.*` and falls back to `logo.*` when there isn't one, so the
@@ -39,16 +39,16 @@ export const siteConfig = {
     // Primary brand scale — this is the accent color of the entire app.
     // Generate a full 50→700 ramp of your brand color and drop it in.
     brand: {
-      50: '#F0F5F5',
-      100: '#D9E6E6',
-      200: '#B3CCCC',
-      300: '#8DB3B3',
-      400: '#749E9E',
-      500: '#5B8A8A',
-      600: '#4A7171',
-      700: '#3A5959',
+      50: '#FFF9EB',
+      100: '#FCEFC7',
+      200: '#F8DE93',
+      300: '#F5CB5F',
+      400: '#F2B93B',
+      500: '#EFA406',
+      600: '#D18104',
+      700: '#A95E05',
     } as Record<number, string>,
     // Secondary accent (used sparingly, e.g. the dashboard welcome gradient).
-    accent: '#3A5959',
+    accent: '#D18104',
   },
 };

@@ -218,7 +218,7 @@ export function ActivityTimeline({ projectId, listMaxHeightClass }: ActivityTime
         const jumpHref = selected.reference_type === 'lead' && selected.reference_id
           ? `/leads/${selected.reference_id}`
           : selected.reference_type === 'contact' && selected.reference_id
-            ? `/contacts/${selected.reference_id}`
+            ? `/customers/${selected.reference_id}`
             : selected.project_id
               ? selected.reference_type === 'task' && selected.reference_id
                 ? `/projects/${selected.project_id}?task=${selected.reference_id}`

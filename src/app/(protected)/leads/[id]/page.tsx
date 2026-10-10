@@ -29,29 +29,29 @@ import { useAuth } from '@/lib/auth-context';
 import { hasPermission } from '@/lib/access-control';
 
 const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'danger' | 'info' | 'purple' }> = {
-  new: { label: 'New', variant: 'info' },
-  contacted: { label: 'Contacted', variant: 'purple' },
-  qualified: { label: 'Qualified', variant: 'warning' },
-  proposal: { label: 'Proposal', variant: 'default' },
-  won: { label: 'Won', variant: 'success' },
-  lost: { label: 'Lost', variant: 'danger' },
+  new: { label: 'جديد', variant: 'info' },
+  contacted: { label: 'تم التواصل', variant: 'purple' },
+  qualified: { label: 'تمت المعاينة', variant: 'warning' },
+  proposal: { label: 'إعداد عرض السعر', variant: 'default' },
+  won: { label: 'تم التعاقد', variant: 'success' },
+  lost: { label: 'مرفوض', variant: 'danger' },
 };
 
 const SOURCE_CONFIG: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'danger' | 'info' | 'purple' }> = {
-  referral: { label: 'Referral', variant: 'success' },
-  website: { label: 'Website', variant: 'info' },
-  social: { label: 'Social', variant: 'purple' },
-  cold_outreach: { label: 'Cold Outreach', variant: 'warning' },
-  event: { label: 'Event', variant: 'default' },
-  network: { label: 'Network', variant: 'info' },
-  other: { label: 'Other', variant: 'default' },
+  referral: { label: 'إحالة', variant: 'success' },
+  website: { label: 'موقع الشركة', variant: 'info' },
+  social: { label: 'تواصل اجتماعي', variant: 'purple' },
+  cold_outreach: { label: 'تواصل مباشر', variant: 'warning' },
+  event: { label: 'فعالية', variant: 'default' },
+  network: { label: 'شبكة علاقات', variant: 'info' },
+  other: { label: 'أخرى', variant: 'default' },
 };
 
 const PROPOSAL_STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'success' | 'warning' | 'danger' | 'info' | 'purple' }> = {
-  draft: { label: 'Draft', variant: 'default' },
-  sent: { label: 'Sent', variant: 'info' },
-  accepted: { label: 'Accepted', variant: 'success' },
-  rejected: { label: 'Rejected', variant: 'danger' },
+  draft: { label: 'مسودة', variant: 'default' },
+  sent: { label: 'تم الإرسال', variant: 'info' },
+  accepted: { label: 'مقبول', variant: 'success' },
+  rejected: { label: 'مرفوض', variant: 'danger' },
 };
 
 const INTERACTION_ICONS: Record<string, React.ReactNode> = {
@@ -74,11 +74,11 @@ function formatRelativeDate(dateStr: string) {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+  if (diffMins < 1) return 'الآن';
+  if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
+  if (diffHours < 24) return `منذ ${diffHours} ساعة`;
+  if (diffDays < 7) return `منذ ${diffDays} يوم`;
+  return date.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
 }
 
 function formatDate(dateStr: string) {
@@ -116,12 +116,12 @@ export default function LeadDetailPage() {
       <div className="animate-fadeIn min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Target className="mx-auto mb-3 text-zinc-500" size={40} />
-          <h3 className="font-medium text-zinc-300 mb-1">Lead not found</h3>
+          <h3 className="font-medium text-zinc-300 mb-1">العميل غير موجود</h3>
           <button
             onClick={() => router.push('/leads')}
             className="text-sm text-brand-300 hover:text-brand-300"
           >
-            Back to leads
+            الرجوع للعملاء
           </button>
         </div>
       </div>
@@ -174,15 +174,15 @@ export default function LeadDetailPage() {
   return (
     <div className="animate-fadeIn min-h-screen">
       <Header
-        title="Lead Details"
+        title="تفاصيل العميل"
         actions={canManageLeads ? (
           <div className="flex items-center gap-2">
             <Button variant="secondary" onClick={() => setIsEditOpen(true)} icon={<Edit size={16} />}>
-              <span className="hidden [@media(min-width:400px)]:inline">Edit</span>
+              <span className="hidden [@media(min-width:400px)]:inline">تعديل</span>
             </Button>
             {canConvert && (
               <Button variant="secondary" onClick={() => setIsConvertOpen(true)} icon={<ArrowRightCircle size={16} />}>
-                <span className="hidden [@media(min-width:400px)]:inline">Convert</span>
+                <span className="hidden [@media(min-width:400px)]:inline">تحويل</span>
               </Button>
             )}
           </div>
@@ -212,33 +212,33 @@ export default function LeadDetailPage() {
               ) : (
                 <span className="flex items-center gap-1.5 text-zinc-600 italic">
                   <Mail size={14} />
-                  <span>No email</span>
+                  <span>لا يوجد بريد</span>
                 </span>
               )}
               {lead.phone ? (
                 <a href={`tel:${lead.phone}`} className="flex items-center gap-1.5 text-zinc-300 hover:text-brand-300 transition-colors">
                   <Phone size={14} className="text-zinc-500" />
-                  <span>{formatPhone(lead.phone)}</span>
+                  <span dir="ltr">{formatPhone(lead.phone)}</span>
                 </a>
               ) : (
                 <span className="flex items-center gap-1.5 text-zinc-600 italic">
                   <Phone size={14} />
-                  <span>No phone</span>
+                  <span>لا يوجد هاتف</span>
                 </span>
               )}
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-[1fr_1fr_3fr] gap-4 mb-4">
             <div>
-              <p className="text-xs text-zinc-400 mb-1">Status</p>
+              <p className="text-xs text-zinc-400 mb-1">الحالة</p>
               <Badge variant={statusCfg.variant}>{statusCfg.label}</Badge>
             </div>
             <div>
-              <p className="text-xs text-zinc-400 mb-1">Source</p>
+              <p className="text-xs text-zinc-400 mb-1">المصدر</p>
               <Badge variant={sourceCfg.variant}>{sourceCfg.label}</Badge>
             </div>
             <div className="col-span-2 sm:col-span-1">
-              <p className="text-xs text-zinc-400 mb-1">Team Members</p>
+              <p className="text-xs text-zinc-400 mb-1">أعضاء الفريق</p>
               {members.length > 0 ? (
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {members.map(m => (
@@ -249,7 +249,7 @@ export default function LeadDetailPage() {
                   ))}
                 </div>
               ) : (
-                <span className="text-sm text-zinc-500">No members assigned</span>
+                <span className="text-sm text-zinc-500">لا يوجد أعضاء</span>
               )}
             </div>
           </div>
@@ -259,14 +259,14 @@ export default function LeadDetailPage() {
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2 text-zinc-400 text-sm">
                 <StickyNote size={14} />
-                <span>Notes</span>
+                <span>ملاحظات</span>
               </div>
               {canManageLeads && !isEditingNotes && (
                 <button
                   onClick={() => { setNotesValue(lead.notes || ''); setIsEditingNotes(true); }}
                   className="text-xs text-brand-300 hover:text-brand-300 transition-colors"
                 >
-                  {lead.notes ? 'Edit' : 'Add notes'}
+                  {lead.notes ? 'تعديل' : 'إضافة ملاحظات'}
                 </button>
               )}
             </div>
@@ -275,7 +275,7 @@ export default function LeadDetailPage() {
                 <RichTextEditor
                   value={notesValue}
                   onChange={setNotesValue}
-                  placeholder="Add notes about this lead..."
+                  placeholder="أضف ملاحظات حول هذا العميل..."
                   rows={3}
                 />
                 <div className="flex justify-end gap-2">
@@ -283,17 +283,17 @@ export default function LeadDetailPage() {
                     onClick={() => setIsEditingNotes(false)}
                     className="px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/[0.06] rounded-lg transition-colors"
                   >
-                    Cancel
+                    إلغاء
                   </button>
                   <button
                     onClick={async () => {
                       setIsEditingNotes(false);
                       const ok = await updateLead(lead.id, { notes: notesValue });
-                      if (ok) toast('success', 'Notes updated');
+                      if (ok) toast('success', 'تم حفظ الملاحظات');
                     }}
                     className="px-3 py-1.5 text-xs text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors"
                   >
-                    Save
+                    حفظ
                   </button>
                 </div>
               </div>
@@ -304,7 +304,7 @@ export default function LeadDetailPage() {
                   dangerouslySetInnerHTML={{ __html: lead.notes }}
                 />
               ) : (
-                <p className="text-sm text-zinc-500 italic">No notes yet</p>
+                <p className="text-sm text-zinc-500 italic">لا توجد ملاحظات بعد</p>
               )
             )}
           </div>
@@ -320,7 +320,7 @@ export default function LeadDetailPage() {
               <div className="flex items-center gap-2">
                 <CalendarClock size={18} className="text-amber-400" />
                 <h2 className="font-semibold text-amber-900">
-                  Upcoming Follow-ups ({upcomingFollowUps.length})
+                  متابعات قادمة ({upcomingFollowUps.length})
                 </h2>
               </div>
               {canManageLeads && <Button
@@ -328,7 +328,7 @@ export default function LeadDetailPage() {
                 onClick={() => { setEditingInteraction(null); setIsInteractionFormOpen(true); }}
                 icon={<Plus size={14} />}
               >
-                Add Follow-up
+                إضافة متابعة
               </Button>}
             </div>
             <div className="space-y-3">
@@ -349,7 +349,7 @@ export default function LeadDetailPage() {
                         </p>
                         <p className={`text-xs ${overdue ? 'text-red-400' : 'text-zinc-400'}`}>
                           {fu.scheduled_at ? formatDate(fu.scheduled_at) : ''}
-                          {overdue && ' (Overdue)'}
+                          {overdue && ' (متأخر)'}
                         </p>
                       </div>
                     </div>
@@ -358,7 +358,7 @@ export default function LeadDetailPage() {
                       className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-300 hover:bg-amber-500/15 rounded-lg transition-colors flex-shrink-0"
                     >
                       <Check size={14} />
-                      Mark Complete
+                      تم الإنجاز
                     </button>}
                   </div>
                 );
@@ -375,7 +375,7 @@ export default function LeadDetailPage() {
               <div className="flex items-center gap-2">
                 <StickyNote size={18} className="text-zinc-400" />
                 <h2 className="font-semibold text-white">
-                  Interactions ({interactions.length})
+                  التفاعلات ({interactions.length})
                 </h2>
               </div>
               {canManageLeads && <Button
@@ -383,7 +383,7 @@ export default function LeadDetailPage() {
                 onClick={() => { setEditingInteraction(null); setIsInteractionFormOpen(true); }}
                 icon={<Plus size={14} />}
               >
-                Add
+                إضافة
               </Button>}
             </div>
 
@@ -412,16 +412,16 @@ export default function LeadDetailPage() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-sm font-medium text-white truncate">{interaction.title}</p>
                           <Badge variant={interaction.type === 'follow_up' ? 'warning' : 'default'}>
-                            {interaction.type === 'follow_up' ? 'Follow-up' : interaction.type.charAt(0).toUpperCase() + interaction.type.slice(1)}
+                            {interaction.type === 'follow_up' ? 'متابعة' : interaction.type}
                           </Badge>
-                          {isCompletedFollowUp && <Badge variant="success">Completed</Badge>}
+                          {isCompletedFollowUp && <Badge variant="success">مكتمل</Badge>}
                         </div>
                         {interaction.description && (
                           <p className="text-sm text-zinc-300 mt-1 line-clamp-2">{interaction.description}</p>
                         )}
                         <div className="flex items-center gap-3 mt-1.5 text-xs text-zinc-500">
                           <span>{formatRelativeDate(interaction.occurred_at)}</span>
-                          {author && <span>by {author.name}</span>}
+                          {author && <span>بواسطة {author.name}</span>}
                         </div>
                       </div>
                       {canManageLeads && <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity flex-shrink-0">
@@ -447,8 +447,8 @@ export default function LeadDetailPage() {
                 <div className="w-10 h-10 rounded-full bg-white/[0.06] flex items-center justify-center mb-3">
                   <StickyNote size={18} className="text-zinc-500" />
                 </div>
-                <p className="text-sm font-medium text-zinc-400">No interactions yet</p>
-                <p className="text-xs text-zinc-500 mt-1">Record calls, emails, and meetings</p>
+                <p className="text-sm font-medium text-zinc-400">لا توجد تفاعلات بعد</p>
+                <p className="text-xs text-zinc-500 mt-1">سجل المكالمات والرسائل والاجتماعات</p>
               </div>
             )}
           </div>
@@ -459,7 +459,7 @@ export default function LeadDetailPage() {
               <div className="flex items-center gap-2">
                 <DollarSign size={18} className="text-zinc-400" />
                 <h2 className="font-semibold text-white">
-                  Proposals ({proposals.length})
+                  عروض الأسعار ({proposals.length})
                 </h2>
               </div>
               {canManageLeads && <Button
@@ -467,7 +467,7 @@ export default function LeadDetailPage() {
                 onClick={() => { setEditingProposal(null); setIsProposalFormOpen(true); }}
                 icon={<Plus size={14} />}
               >
-                Add
+                إضافة
               </Button>}
             </div>
 
@@ -517,8 +517,8 @@ export default function LeadDetailPage() {
                 <div className="w-10 h-10 rounded-full bg-white/[0.06] flex items-center justify-center mb-3">
                   <DollarSign size={18} className="text-zinc-500" />
                 </div>
-                <p className="text-sm font-medium text-zinc-400">No proposals yet</p>
-                <p className="text-xs text-zinc-500 mt-1">Create proposals for this lead</p>
+                <p className="text-sm font-medium text-zinc-400">لا توجد عروض أسعار بعد</p>
+                <p className="text-xs text-zinc-500 mt-1">قم بإنشاء عروض أسعار لهذا العميل</p>
               </div>
             )}
           </div>
@@ -532,7 +532,7 @@ export default function LeadDetailPage() {
 
         {canManageLeads && <div className="flex justify-end">
           <Button variant="danger" onClick={() => setIsDeleteOpen(true)} icon={<Trash2 size={16} />}>
-            Delete Lead
+            حذف العميل
           </Button>
         </div>}
       </div>
@@ -569,9 +569,9 @@ export default function LeadDetailPage() {
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={handleDelete}
-        title="Delete Lead"
-        message="This will permanently delete this lead and all its interactions and proposals. This action cannot be undone."
-        confirmLabel="Delete"
+        title="حذف العميل"
+        message="سيتم حذف هذا العميل نهائياً وجميع التفاعلات وعروض الأسعار المرتبطة به. لا يمكن التراجع عن هذا الإجراء."
+        confirmLabel="حذف"
         variant="danger"
       />
 
@@ -579,9 +579,9 @@ export default function LeadDetailPage() {
         isOpen={!!deletingInteractionId}
         onClose={() => setDeletingInteractionId(null)}
         onConfirm={executeDeleteInteraction}
-        title="Delete Interaction"
-        message="This will permanently delete this interaction. This action cannot be undone."
-        confirmLabel="Delete"
+        title="حذف التفاعل"
+        message="سيتم حذف هذا التفاعل نهائياً. لا يمكن التراجع عن هذا الإجراء."
+        confirmLabel="حذف"
         variant="danger"
       />
 
@@ -589,9 +589,9 @@ export default function LeadDetailPage() {
         isOpen={!!deletingProposalId}
         onClose={() => setDeletingProposalId(null)}
         onConfirm={executeDeleteProposal}
-        title="Delete Proposal"
-        message="This will permanently delete this proposal. This action cannot be undone."
-        confirmLabel="Delete"
+        title="حذف عرض السعر"
+        message="سيتم حذف عرض السعر نهائياً. لا يمكن التراجع عن هذا الإجراء."
+        confirmLabel="حذف"
         variant="danger"
       />
     </div>

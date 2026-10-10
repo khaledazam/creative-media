@@ -34,7 +34,7 @@ export function FilesSection({
 
   return (
     <SectionCard sectionKey="show_files">
-      <SectionHeader title="Files" right={<SectionCount>{files.length}</SectionCount>} />
+      <SectionHeader title="الملفات" right={<SectionCount>{files.length}</SectionCount>} />
 
       {files.length > 0 ? (
         <ul>
@@ -86,13 +86,13 @@ export function FilesSection({
           ))}
         </ul>
       ) : (
-        <p className="vm-muted text-[15px]">No files shared yet.</p>
+        <p className="vm-muted text-[15px]">لم يتم مشاركة ملفات بعد.</p>
       )}
 
       <div className="mt-7 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-(--vm-line-strong) px-5 py-6 text-center sm:flex-row sm:justify-between sm:text-left">
         <div>
-          <p className="text-[15px] font-medium">Send us a file</p>
-          <p className="vm-muted mt-0.5 text-[13px]">Uploads go straight to the project team.</p>
+          <p className="text-[15px] font-medium">أرسل لنا ملفاً</p>
+          <p className="vm-muted mt-0.5 text-[13px]">الملفات المرفوعة تذهب مباشرة لفريق المشروع.</p>
         </div>
         <button
           type="button"
@@ -105,7 +105,7 @@ export function FilesSection({
           ) : (
             <Upload size={15} aria-hidden="true" />
           )}
-          {uploading ? 'Uploading' : 'Choose a file'}
+          {uploading ? 'جاري الرفع' : 'اختر ملفاً'}
         </button>
         <FileInput
           ref={inputRef}

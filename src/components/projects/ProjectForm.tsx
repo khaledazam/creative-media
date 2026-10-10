@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/inputs/Select';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { ContactForm } from '@/components/contacts/ContactForm';
+import { ContactForm } from '@/components/customers/ContactForm';
 import { Textarea } from '@/components/ui/inputs/Textarea';
 import { MultiSelect } from '@/components/ui/inputs/MultiSelect';
 import { DateInput } from '@/components/ui/inputs/DateInput';
@@ -69,7 +69,7 @@ interface ProjectFormProps {
 }
 
 export function ProjectForm({ isOpen, onClose, project }: ProjectFormProps) {
-  const { team, contacts, addProject, updateProject, addProjectContact, getPrimaryClient } =
+  const { team, contacts, contracts, addProject, updateProject, addProjectContact, getPrimaryClient } =
     useApp();
   const { access, teamMemberId } = useAuth();
   const canManageBilling = hasPermission(access, 'billing.manage');
@@ -80,6 +80,11 @@ export function ProjectForm({ isOpen, onClose, project }: ProjectFormProps) {
   const [description, setDescription] = useState('');
   const [color, setColor] = useState(DEFAULT_PROJECT_COLOR);
   const [status, setStatus] = useState<Project['status']>('active');
+  const [phase, setPhase] = useState<Project['phase']>('تصميم');
+  const [location, setLocation] = useState('');
+  const [projectManagerId, setProjectManagerId] = useState('');
+  const [contractId, setContractId] = useState('');
+  const [paidAmount, setPaidAmount] = useState('');
   const [startDate, setStartDate] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [hourlyTracking, setHourlyTracking] = useState(false);
@@ -111,6 +116,11 @@ export function ProjectForm({ isOpen, onClose, project }: ProjectFormProps) {
       setDescription(project.description);
       setColor(project.color);
       setStatus(project.status);
+      setPhase(project.phase || 'تصميم');
+      setLocation(project.location || '');
+      setProjectManagerId(project.project_manager_id || '');
+      setContractId(project.contract_id || '');
+      setPaidAmount(project.paid_amount != null ? String(project.paid_amount) : '');
       setStartDate(project.start_date || '');
       setDueDate(project.due_date || '');
       setHourlyTracking(project.time_tracking_enabled ?? project.hourly_tracking ?? false);
@@ -132,6 +142,11 @@ export function ProjectForm({ isOpen, onClose, project }: ProjectFormProps) {
       setDescription('');
       setColor(DEFAULT_PROJECT_COLOR);
       setStatus('active');
+      setPhase('تصميم');
+      setLocation('');
+      setProjectManagerId('');
+      setContractId('');
+      setPaidAmount('');
       setStartDate('');
       setDueDate('');
       setHourlyTracking(false);
@@ -179,6 +194,11 @@ export function ProjectForm({ isOpen, onClose, project }: ProjectFormProps) {
       description: description.trim(),
       color,
       status,
+      phase,
+      location: location.trim(),
+      project_manager_id: projectManagerId || null,
+      contract_id: contractId || null,
+      paid_amount: paidAmount ? parseFloat(paidAmount) : 0,
       start_date: startDate || null,
       due_date: dueDate || null,
       hourly_tracking: hourlyTracking,
@@ -262,37 +282,59 @@ export function ProjectForm({ isOpen, onClose, project }: ProjectFormProps) {
   const selectedContact = contacts.find((c) => c.id === selectedContactId);
 
   const statusOptions = [
-    { value: 'active', label: 'Active' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'archived', label: 'Archived' },
+    { value: 'active', label: 'نشط' },
+    { value: 'completed', label: 'مكتمل' },
+    { value: 'archived', label: 'مؤرشف' },
+  ];
+
+  const phaseOptions = [
+    { value: 'تصميم', label: 'مرحلة التصميم' },
+    { value: 'استخراج تصاريح', label: 'استخراج التصاريح' },
+    { value: 'تنفيذ أعمال', label: 'تنفيذ الأعمال' },
+    { value: 'تسليم نهائي', label: 'تسليم نهائي' },
   ];
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={project ? 'Edit Project' : 'New Project'}
+      title={project ? 'تعديل المشروع' : 'مشروع جديد'}
       size="lg"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 text-right" dir="rtl">
         <div className="grid grid-cols-2 gap-4">
           <Input
-            label="Project Name"
+            label="اسم المشروع"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Enter project name"
+            placeholder="أدخل اسم المشروع"
             required
           />
           <Select
-            label="Status"
+            label="الحالة"
             value={status}
             onChange={(value) => setStatus(value as Project['status'])}
             options={statusOptions}
           />
         </div>
 
+        <div className="grid grid-cols-2 gap-4">
+          <Select
+            label="مرحلة التنفيذ"
+            value={phase || 'تصميم'}
+            onChange={(value) => setPhase(value as Project['phase'])}
+            options={phaseOptions}
+          />
+          <Input
+            label="موقع التنفيذ"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder="عنوان المشروع..."
+          />
+        </div>
+
         <Textarea
-          label="Description"
+          label="الوصف"
           value={description}
           onChange={(v) => setDescription(v.slice(0, 100))}
           placeholder="Describe the project..."
@@ -499,63 +541,101 @@ export function ProjectForm({ isOpen, onClose, project }: ProjectFormProps) {
           </div>
         )}
 
-        {/* Budget */}
-        {canManageBilling && (
-          <>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-zinc-300">
-                Budget <span className="font-normal text-zinc-500">(optional)</span>
-              </label>
-              <div className="flex gap-2">
-                <div className="flex rounded-lg border border-white/[0.08] overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setBudgetType(budgetType === 'amount' ? '' : 'amount')}
-                    className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-                      budgetType === 'amount'
-                        ? 'bg-brand-600 text-white'
-                        : 'bg-surface-raised text-zinc-400 hover:bg-white/[0.03]'
-                    }`}
-                  >
-                    Amount
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBudgetType(budgetType === 'hours' ? '' : 'hours')}
-                    className={`px-3 py-1.5 text-sm font-medium transition-colors border-l border-white/[0.08] ${
-                      budgetType === 'hours'
-                        ? 'bg-brand-600 text-white'
-                        : 'bg-surface-raised text-zinc-400 hover:bg-white/[0.03]'
-                    }`}
-                  >
-                    Hours
-                  </button>
-                </div>
-                {budgetType && (
-                  <div className="relative flex-1">
-                    {budgetType === 'amount' && (
-                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 z-10">
-                        $
-                      </span>
-                    )}
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      value={formatBudgetDisplay(budgetValue)}
-                      onChange={(e) => setBudgetValue(sanitizeBudgetInput(e.target.value))}
-                      placeholder={budgetType === 'amount' ? '5,000' : '40'}
-                      className={budgetType === 'amount' ? 'pl-7' : ''}
-                    />
-                  </div>
-                )}
+      <div className="grid grid-cols-2 gap-4 mt-4">
+        <div className="relative">
+          <span className="pointer-events-none absolute right-3 top-[34px] -translate-y-1/2 text-sm text-zinc-400 z-10">
+            ر.س
+          </span>
+          <Input
+            label="المبلغ المدفوع (مُستلم)"
+            type="text"
+            inputMode="decimal"
+            value={formatBudgetDisplay(paidAmount)}
+            onChange={(e) => setPaidAmount(sanitizeBudgetInput(e.target.value))}
+            placeholder="مثال: 10000"
+            className="pr-12 text-left"
+            dir="ltr"
+          />
+        </div>
+        <div className="relative">
+          <Input
+            label="معرف العقد المرتبط"
+            type="text"
+            value={contractId}
+            onChange={(e) => setContractId(e.target.value)}
+            placeholder="إذا كان مرتبطاً بعقد..."
+            dir="ltr"
+            className="text-left"
+            list="contracts-list"
+          />
+          <datalist id="contracts-list">
+            {contracts.map(c => (
+              <option key={c.id} value={c.id}>
+                {c.projectInfo?.name || c.id} - {c.status}
+              </option>
+            ))}
+          </datalist>
+        </div>
+      </div>
+
+      {/* Budget */}
+      {canManageBilling && (
+        <>
+          <div className="space-y-2 mt-4">
+            <label className="block text-sm font-medium text-zinc-300">
+              ميزانية المشروع / إجمالي العقد <span className="font-normal text-zinc-500">(اختياري)</span>
+            </label>
+            <div className="flex gap-2">
+              <div className="flex rounded-lg border border-white/[0.08] overflow-hidden" dir="ltr">
+                <button
+                  type="button"
+                  onClick={() => setBudgetType(budgetType === 'amount' ? '' : 'amount')}
+                  className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                    budgetType === 'amount'
+                      ? 'bg-brand-600 text-white'
+                      : 'bg-surface-raised text-zinc-400 hover:bg-white/[0.03]'
+                  }`}
+                >
+                  المبلغ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBudgetType(budgetType === 'hours' ? '' : 'hours')}
+                  className={`px-3 py-1.5 text-sm font-medium transition-colors border-l border-white/[0.08] ${
+                    budgetType === 'hours'
+                      ? 'bg-brand-600 text-white'
+                      : 'bg-surface-raised text-zinc-400 hover:bg-white/[0.03]'
+                  }`}
+                >
+                  الساعات
+                </button>
               </div>
               {budgetType && (
-                <p className="text-xs text-zinc-500">
-                  {budgetType === 'amount'
-                    ? 'Total dollar budget for this project'
-                    : 'Total hours allocated for this project'}
-                </p>
+                <div className="relative flex-1">
+                  {budgetType === 'amount' && (
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400 z-10">
+                      ر.س
+                    </span>
+                  )}
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    value={formatBudgetDisplay(budgetValue)}
+                    onChange={(e) => setBudgetValue(sanitizeBudgetInput(e.target.value))}
+                    placeholder={budgetType === 'amount' ? '5,000' : '40'}
+                    className={`text-left ${budgetType === 'amount' ? 'pr-12' : ''}`}
+                    dir="ltr"
+                  />
+                </div>
               )}
+            </div>
+            {budgetType && (
+              <p className="text-xs text-zinc-500">
+                {budgetType === 'amount'
+                  ? 'إجمالي قيمة المشروع المالية (العقد)'
+                  : 'إجمالي الساعات المخصصة للمشروع'}
+              </p>
+            )}
 
               {project && budgetHistory && budgetHistory.length >= 2 && (
                 <div className="pt-1">

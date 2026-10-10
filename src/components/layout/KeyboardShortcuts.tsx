@@ -73,7 +73,7 @@ export function KeyboardShortcuts() {
           d: '/dashboard',
           p: '/projects',
           l: '/leads',
-          c: '/contacts',
+          c: '/customers',
           t: '/team',
           s: '/settings',
         };

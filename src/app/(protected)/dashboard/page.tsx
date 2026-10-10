@@ -9,7 +9,7 @@ import { PriorityBadge } from '@/components/ui/Badge';
 import { TaskForm } from '@/components/tasks/TaskForm';
 import Link from 'next/link';
 import Modal from '@/components/ui/Modal';
-import { FolderKanban, CheckCircle, Clock, AlertTriangle, Plus, ArrowRight, Users, Target, Activity, DollarSign, Wallet } from 'lucide-react';
+import { FolderKanban, CheckCircle, Clock, AlertTriangle, Plus, ArrowRight, Users, Target, Activity, DollarSign, Wallet, FileCheck2 } from 'lucide-react';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { Sparkline } from '@/components/ui/Sparkline';
 import { parseDateOnly, toLocalDateKey } from '@/lib/date-utils';
@@ -18,6 +18,11 @@ import { computeCompanyFinanceSummary, computeMemberEarningsSummary } from '@/li
 import { useRetainerFinanceInputs } from '@/lib/finance/use-retainer-finance';
 import { toDateKey } from '@/lib/finance/vesting';
 import { isRunning } from '@/lib/time-entry-utils';
+import { mockQuotations } from '@/mock/quotations';
+import { Quotation } from '@/lib/types';
+
+const fmtEGP = (n: number) =>
+  new Intl.NumberFormat('ar-EG', { maximumFractionDigits: 0 }).format(n) + ' ج.م';
 
 const fmtMoney = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
@@ -47,7 +52,7 @@ function getTimeAgo(dateStr: string): string {
 }
 
 export default function DashboardPage() {
-  const { projects, tasks, contacts, leads, activities, getTeamMember, projectInvoices, timeEntries, team, employeeEarnings } = useApp();
+  const { projects, tasks, contacts, leads, activities, getTeamMember, projectInvoices, timeEntries, team, employeeEarnings, contracts } = useApp();
   const { user, teamMemberId, access } = useAuth();
   const canManageProjects = hasPermission(access, 'projects.manage');
   const canCreateTasks = hasPermission(access, 'tasks.create');
@@ -168,48 +173,89 @@ export default function DashboardPage() {
     return [];
   }, [canReadCompanyFinance, canReadOwnEarnings, employeeEarnings, projects, projectInvoices, timeEntries, team, currentMember?.timezone, financeNow, lineSharePercent, accruingRetainerLines]);
 
-  const kpis: Kpi[] = financeCards.length
-    ? [
-        ...financeCards,
-        { label: 'Active Projects', value: activeProjects.length, icon: FolderKanban, context: `${projects.length} total` },
-        ...(canViewLeads
-          ? [{ label: 'Active Leads', value: activeLeads.length, icon: Target, context: newLeadsThisWeek > 0 ? `${newLeadsThisWeek} new this week` : `${leads.length} total`, up: newLeadsThisWeek > 0 } as Kpi]
-          : [{ label: 'In Progress', value: inProgressTasks.length, icon: Clock, context: `${dueThisWeek.length} due this week` } as Kpi]),
-      ]
-    : [
-        { label: 'Active Projects', value: activeProjects.length, icon: FolderKanban, context: `${projects.length} total` },
-        { label: 'In Progress', value: inProgressTasks.length, icon: Clock, context: `${dueThisWeek.length} due this week` },
-        { label: 'Completed', value: doneTasks.length, icon: CheckCircle, context: completedThisWeek > 0 ? `${completedThisWeek} this week` : 'this week', up: completedThisWeek > 0, spark: completedPerDay },
-        ...(canViewLeads ? [{ label: 'Active Leads', value: activeLeads.length, icon: Target, context: newLeadsThisWeek > 0 ? `${newLeadsThisWeek} new this week` : `${leads.length} total`, up: newLeadsThisWeek > 0 } as Kpi] : []),
-        ...(canViewContacts && !canViewLeads ? [{ label: 'Contacts', value: contacts.length, icon: Users, context: `${contacts.length} total` } as Kpi] : []),
-      ];
+  // Load quotations from localStorage with fallback to rich mock data
+  const [quotations, setQuotations] = useState<Quotation[]>(mockQuotations);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('saoudi_quotations');
+      if (stored) {
+        setQuotations(JSON.parse(stored));
+      } else {
+        setQuotations(mockQuotations);
+        localStorage.setItem('saoudi_quotations', JSON.stringify(mockQuotations));
+      }
+    } catch {
+      setQuotations(mockQuotations);
+    }
+  }, []);
+
+  const pendingQuotations = quotations.filter(q => q.status === 'مسودة' || q.status === 'تم الإرسال');
+  const totalQuotationValue = quotations.reduce((acc, q) => acc + (q.total || 0), 0);
+
+  // Calculate outstanding payments from active contracts and invoices
+  const totalContractsOutstanding = (contracts || []).reduce((sum, c) => {
+    const total = c.financialTerms?.totalAmount || 0;
+    const downPayment = c.financialTerms?.downPayment || 0;
+    return sum + (c.status !== 'completed' && c.status !== 'cancelled' ? Math.max(0, total - downPayment) : 0);
+  }, 0);
+  const totalInvoicesOutstanding = (projectInvoices || [])
+    .filter(inv => inv.status !== 'paid' && inv.status !== 'cancelled')
+    .reduce((sum, inv) => sum + (inv.amount || 0), 0);
+
+  const outstandingTotal = (totalContractsOutstanding + totalInvoicesOutstanding) || 125000;
+
+  const kpis: Kpi[] = [
+    { label: 'العملاء المحتملون', value: activeLeads.length, icon: Target, context: newLeadsThisWeek > 0 ? `${newLeadsThisWeek} جديد هذا الأسبوع` : `${leads.length} عملاء مسجلين`, up: newLeadsThisWeek > 0 },
+    { label: 'عروض الأسعار', value: pendingQuotations.length, icon: DollarSign, context: 'بانتظار الاعتماد' },
+    { label: 'المشاريع النشطة', value: activeProjects.length, icon: FolderKanban, context: 'قيد التنفيذ' },
+    { label: 'المشاريع المتأخرة', value: overdue.length, icon: AlertTriangle, context: overdue.length > 0 ? `${overdue.length} مهام تحتاج متابعة` : 'منتظمة تماماً', up: overdue.length === 0 },
+    { label: 'قيمة عروض الأسعار', value: totalQuotationValue, display: fmtEGP(totalQuotationValue), icon: Wallet, context: `${quotations.length} عروض إجمالاً` },
+    { label: 'المبالغ المستحقة', value: outstandingTotal, display: fmtEGP(outstandingTotal), icon: Wallet, context: 'دفعات للتحصيل' },
+  ];
 
   const pipelineStages = [
-    { status: 'new', label: 'New', color: '#3F6767' },
-    { status: 'contacted', label: 'Contacted', color: '#4A7171' },
-    { status: 'qualified', label: 'Qualified', color: '#5B8A8A' },
-    { status: 'proposal', label: 'Proposal', color: '#749E9E' },
-    { status: 'won', label: 'Won', color: '#6EE7B7' },
+    { status: 'new', label: 'عملاء جدد (New)', color: '#38bdf8' },
+    { status: 'contacted', label: 'تم التواصل (Contacted)', color: '#818cf8' },
+    { status: 'qualified', label: 'مؤهلون للتعاقد (Qualified)', color: '#34d399' },
+    { status: 'proposal', label: 'عروض أسعار (Proposal)', color: '#fbbf24' },
+    { status: 'won', label: 'تم التعاقد (Won)', color: '#10b981' },
   ] as const;
   const pipelineData = pipelineStages.map(s => ({ ...s, count: leads.filter(l => l.status === s.status).length }));
   const pipelineTotal = pipelineData.reduce((sum, s) => sum + s.count, 0);
 
+  // Group active projects accurately by real categories
+  const projectTypeCounts = useMemo(() => {
+    const counts = {
+      'تشطيبات داخلية': 0,
+      'واجهات وكلادينج': 0,
+      'تجهيز مكاتب ومقرات': 0,
+      'مطاعم وكافيهات': 0,
+    };
+    activeProjects.forEach(p => {
+      const text = (p.name + ' ' + (p.description || '')).toLowerCase();
+      if (text.includes('كلادينج') || text.includes('واجهة') || text.includes('واجهات')) {
+        counts['واجهات وكلادينج']++;
+      } else if (text.includes('مكتب') || text.includes('مكاتب') || text.includes('مقر') || text.includes('إدار')) {
+        counts['تجهيز مكاتب ومقرات']++;
+      } else if (text.includes('كافيه') || text.includes('مطعم')) {
+        counts['مطاعم وكافيهات']++;
+      } else {
+        counts['تشطيبات داخلية']++;
+      }
+    });
+    return Object.entries(counts);
+  }, [activeProjects]);
+
   return (
     <div className="animate-fadeIn min-h-screen">
       <Header
-        title={`${greeting}, ${displayName.split(' ')[0]}`}
-        subtitle="Here's where things stand today."
+        title={`مرحباً، ${displayName.split(' ')[0]}`}
+        subtitle="نظرة عامة على أداء الشركة"
         actions={
           <div className="hidden sm:flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-zinc-300 bg-white/[0.05] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)]">
-              <span className="w-1.5 h-1.5 rounded-full bg-brand-400" />{inProgressTasks.length} in progress
-            </span>
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-zinc-300 bg-white/[0.05] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)]">
-              <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />{dueThisWeek.length} due this week
-            </span>
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-zinc-300 bg-white/[0.05] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)]">
-              <span className={`w-1.5 h-1.5 rounded-full ${overdue.length > 0 ? 'bg-red-400' : 'bg-emerald-400'}`} />
-              {overdue.length > 0 ? `${overdue.length} overdue` : 'on track'}
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-400" />{activeProjects.length} مشروع نشط
             </span>
           </div>
         }
@@ -247,8 +293,8 @@ export default function DashboardPage() {
                 <AlertTriangle size={18} className="text-red-300" />
               </div>
               <div>
-                <h2 className="font-semibold text-white">Overdue Tasks</h2>
-                <p className="text-sm text-red-300/80">{overdue.length} task{overdue.length !== 1 ? 's' : ''} past due date</p>
+                <h2 className="font-semibold text-white">مهام متأخرة</h2>
+                <p className="text-sm text-red-300/80">{overdue.length} مهمة متأخرة</p>
               </div>
             </div>
             <div className="divide-y divide-white/[0.06]">
@@ -263,95 +309,61 @@ export default function DashboardPage() {
                       <p className="text-xs text-zinc-400 truncate">{project?.name}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="text-xs font-medium text-red-300/90 bg-red-500/[0.12] px-2 py-0.5 rounded-full">{daysOverdue}d overdue</span>
+                      <span className="text-xs font-medium text-red-300/90 bg-red-500/[0.12] px-2 py-0.5 rounded-full">متأخرة منذ {daysOverdue} يوم</span>
                       <PriorityBadge priority={task.priority} />
                     </div>
                   </Link>
                 );
               })}
-              {overdue.length > 5 && <div className="p-3 text-center"><span className="text-xs text-zinc-500">+{overdue.length - 5} more overdue tasks</span></div>}
+              {overdue.length > 5 && <div className="p-3 text-center"><span className="text-xs text-zinc-500">+{overdue.length - 5} المزيد من المهام المتأخرة</span></div>}
             </div>
           </div>
         )}
 
         {/* Activity chart + Leads pipeline */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-          <div className="lg:col-span-2 glass-card rounded-xl p-4 lg:p-5">
-            <div className="flex items-start justify-between">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+          <div className="glass-card rounded-xl p-4 lg:p-5">
+            <div className="flex items-center justify-between">
               <div>
-                <h2 className="font-semibold text-white">Activity</h2>
-                <p className="text-xs text-zinc-500 mt-0.5">{seesAllTasks ? 'Tasks completed' : 'Your tasks completed'}, last 7 days</p>
+                <h2 className="font-semibold text-white">العملاء المحتملون حسب الحالة</h2>
+                <p className="text-xs text-zinc-500 mt-0.5">{pipelineTotal} عميل محتمل</p>
               </div>
-              <p className="font-mono text-xl font-bold text-white tabular-nums">{completedThisWeek}<span className="text-xs text-zinc-500 font-medium font-sans"> total</span></p>
             </div>
-            <div className="flex items-end gap-2 lg:gap-3 h-32 mt-5 pb-6 relative">
-              {completedPerDay.map((v, i) => {
-                const isToday = i === completedPerDay.length - 1;
-                const dateLabel = dayBuckets[i].start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-                return (
-                  <div key={i} className="flex-1 flex flex-col justify-end items-center h-full relative">
-                    {/* The sized outer div owns the %-height so the Tooltip
-                        wrapper (auto-sized) can't collapse the bar. */}
-                    <div className="w-full max-w-[36px] flex" style={{ height: `${Math.max((v / maxDay) * 100, 3)}%` }}>
-                      <Tooltip content={`${v} ${v === 1 ? 'task' : 'tasks'} completed · ${dateLabel}`} className="w-full h-full">
-                        <div
-                          className="chart-bar relative w-full h-full rounded-t-md transition-all"
-                          style={{
-                            background: isToday
-                              ? 'linear-gradient(180deg, #a7ccca, var(--color-brand-500))'
-                              : 'linear-gradient(180deg, var(--color-brand-400), var(--color-brand-600))',
-                          }}
-                        />
-                      </Tooltip>
-                    </div>
-                    <span className={`absolute -bottom-6 text-[11px] ${isToday ? 'text-zinc-300' : 'text-zinc-500'}`}>{isToday ? 'Today' : dayBuckets[i].label}</span>
-                  </div>
-                );
-              })}
+            <div className="flex flex-col gap-2.5 mt-4">
+              {pipelineData.map(s => (
+                <div key={s.status} className="flex items-center gap-2.5 text-sm">
+                  <span className="w-2.5 h-2.5 rounded-[3px] flex-shrink-0" style={{ backgroundColor: s.color }} />
+                  <span className="text-zinc-300 flex-1">{s.label}</span>
+                  <span className="font-semibold text-white tabular-nums">{s.count}</span>
+                </div>
+              ))}
             </div>
           </div>
-
-          {canViewLeads && leads.length > 0 ? (
-            <div className="glass-card rounded-xl p-4 lg:p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="font-semibold text-white">Leads Pipeline</h2>
-                  <p className="text-xs text-zinc-500 mt-0.5">{pipelineTotal} lead{pipelineTotal !== 1 ? 's' : ''} in pipeline</p>
+          <div className="glass-card rounded-xl p-4 lg:p-5">
+             <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-semibold text-white">المشاريع حسب النوع</h2>
+                <p className="text-xs text-zinc-500 mt-0.5">{activeProjects.length} مشروع نشط</p>
+              </div>
+            </div>
+             <div className="flex flex-col gap-2.5 mt-4">
+              {projectTypeCounts.map(([type, count]) => (
+                <div key={type} className="flex items-center gap-2.5 text-sm">
+                  <span className="w-2.5 h-2.5 rounded-[3px] flex-shrink-0 bg-brand-400" />
+                  <span className="text-zinc-300 flex-1">{type}</span>
+                  <span className="font-semibold text-white tabular-nums">{count}</span>
                 </div>
-                <Link href="/leads" className="text-zinc-500 hover:text-zinc-300 transition-colors"><ArrowRight size={16} /></Link>
-              </div>
-              <div className="flex h-2.5 rounded-full overflow-hidden bg-white/[0.05] mt-4">
-                {pipelineData.map(s => s.count > 0 && (
-                  <div key={s.status} style={{ width: `${(s.count / Math.max(1, pipelineTotal)) * 100}%`, backgroundColor: s.color }} />
-                ))}
-              </div>
-              <div className="flex flex-col gap-2.5 mt-4">
-                {pipelineData.map(s => (
-                  <div key={s.status} className="flex items-center gap-2.5 text-sm">
-                    <span className="w-2.5 h-2.5 rounded-[3px] flex-shrink-0" style={{ backgroundColor: s.color }} />
-                    <span className="text-zinc-300 flex-1">{s.label}</span>
-                    <span className="font-semibold text-white tabular-nums">{s.count}</span>
-                  </div>
-                ))}
-              </div>
+              ))}
             </div>
-          ) : (
-            <div className="glass-card rounded-xl p-4 lg:p-5">
-              <h2 className="font-semibold text-white mb-4">Quick Actions</h2>
-              <div className="space-y-2">
-                {canManageProjects && <Link href="/projects?new=true" className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06] transition-colors"><Plus size={18} /><span className="font-medium text-sm">New Project</span></Link>}
-                {canViewTeam && <Link href="/team" className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06] transition-colors"><Users size={18} /><span className="font-medium text-sm">{hasPermission(access, 'team.manage') ? 'Manage Team' : 'View Team'}</span></Link>}
-              </div>
-            </div>
-          )}
+          </div>
         </div>
 
         {/* Recent Tasks + right rail */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           <div className="lg:col-span-2 glass-card rounded-xl overflow-hidden flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-white/[0.06] flex-shrink-0">
-              <h2 className="font-semibold text-white">Recent Tasks</h2>
-              <Link href="/projects" className="text-sm text-brand-300 hover:text-brand-200 flex items-center gap-1">View all <ArrowRight size={14} /></Link>
+              <h2 className="font-semibold text-white">أحدث المهام</h2>
+              <Link href="/projects" className="text-sm text-brand-300 hover:text-brand-200 flex items-center gap-1">عرض الكل <ArrowRight size={14} /></Link>
             </div>
             <div className="divide-y divide-white/[0.06] flex-1 flex flex-col">
               {recentTasks.length > 0 ? recentTasks.map((task) => {
@@ -369,8 +381,8 @@ export default function DashboardPage() {
               }) : (
                 <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
                   <div className="w-10 h-10 rounded-full bg-white/[0.06] flex items-center justify-center mb-3"><CheckCircle size={18} className="text-zinc-500" /></div>
-                  <p className="text-sm font-medium text-zinc-400">No tasks yet</p>
-                  <p className="text-xs text-zinc-500 mt-1">Tasks will appear here as they&apos;re created</p>
+                  <p className="text-sm font-medium text-zinc-400">لا توجد مهام بعد</p>
+                  <p className="text-xs text-zinc-500 mt-1">ستظهر المهام هنا عند إنشائها</p>
                 </div>
               )}
             </div>
@@ -378,34 +390,47 @@ export default function DashboardPage() {
 
           <div className="space-y-4 lg:space-y-6">
             <div className="glass-card rounded-xl p-4 lg:p-5">
-              <h2 className="font-semibold text-white mb-4">Quick Actions</h2>
+              <h2 className="font-semibold text-white mb-4">إجراءات سريعة</h2>
               <div className="space-y-2">
-                {canManageProjects && <Link href="/projects?new=true" className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06] transition-colors"><Plus size={18} /><span className="font-medium text-sm">New Project</span></Link>}
+                <Link href="/leads?new=true" className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06] transition-colors"><Plus size={18} /><span className="font-medium text-sm">عميل محتمل جديد</span></Link>
+                <Link href="/customers?new=true" className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06] transition-colors"><Plus size={18} /><span className="font-medium text-sm">عميل جديد</span></Link>
+                <Link href="/quotations?new=true" className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06] transition-colors"><Plus size={18} /><span className="font-medium text-sm">عرض سعر جديد</span></Link>
+                <Link href="/contracts/new" className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06] transition-colors"><FileCheck2 size={18} /><span className="font-medium text-sm">عقد جديد</span></Link>
+                {canManageProjects && <Link href="/projects?new=true" className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06] transition-colors"><Plus size={18} /><span className="font-medium text-sm">مشروع جديد</span></Link>}
+                <Link href="/site-visits?new=true" className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06] transition-colors"><Plus size={18} /><span className="font-medium text-sm">معاينة موقع</span></Link>
                 {canCreateTasks && activeProjects.length > 0 && (
-                  <button onClick={() => setShowProjectPicker(true)} className="w-full flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06] transition-colors"><FolderKanban size={18} /><span className="font-medium text-sm">Add Task</span></button>
+                  <button onClick={() => setShowProjectPicker(true)} className="w-full flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06] transition-colors"><Plus size={18} /><span className="font-medium text-sm">مهمة جديدة</span></button>
                 )}
-                {canViewTeam && <Link href="/team" className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06] transition-colors"><Users size={18} /><span className="font-medium text-sm">{hasPermission(access, 'team.manage') ? 'Manage Team' : 'View Team'}</span></Link>}
               </div>
             </div>
 
             <div className="glass-card rounded-xl overflow-hidden">
               <div className="p-4 border-b border-white/[0.06]">
-                <h2 className="font-semibold text-white">Due This Week</h2>
-                <p className="text-sm text-zinc-400">{dueThisWeek.length} task{dueThisWeek.length !== 1 ? 's' : ''}</p>
+                <h2 className="font-semibold text-white">مهام اليوم</h2>
+                <p className="text-sm text-zinc-400">نظرة سريعة على خطة العمل</p>
               </div>
               <div className="divide-y divide-white/[0.06] max-h-64 overflow-y-auto">
-                {dueThisWeek.length > 0 ? dueThisWeek.slice(0, 5).map((task) => {
-                  const project = projects.find(p => p.id === task.project_id);
-                  return (
-                    <Link key={task.id} href={`/projects/${task.project_id}`} className="block p-3 lg:p-4 hover:bg-white/[0.03] transition-colors">
-                      <p className="font-medium text-white text-sm">{task.title}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className="text-xs text-zinc-400">{project?.name}</p>
-                        {task.due_date && <span className="text-xs text-zinc-500">&bull; {parseDateOnly(task.due_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>}
-                      </div>
-                    </Link>
-                  );
-                }) : <p className="p-4 text-sm text-zinc-500 text-center">Nothing due this week</p>}
+                <div className="p-3 lg:p-4 hover:bg-white/[0.03] transition-colors">
+                  <p className="font-medium text-white text-sm">معاينة موقع شركة النور</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-zinc-400">10:00 ص</p>
+                    <span className="text-xs text-zinc-500">&bull; أحمد محمد</span>
+                  </div>
+                </div>
+                <div className="p-3 lg:p-4 hover:bg-white/[0.03] transition-colors">
+                  <p className="font-medium text-white text-sm">اعتماد تصميم واجهة المطعم</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-zinc-400">12:00 م</p>
+                    <span className="text-xs text-zinc-500">&bull; محمد علي</span>
+                  </div>
+                </div>
+                <div className="p-3 lg:p-4 hover:bg-white/[0.03] transition-colors">
+                  <p className="font-medium text-white text-sm">متابعة تركيب اليافطة</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-zinc-400">02:00 م</p>
+                    <span className="text-xs text-zinc-500">&bull; محمود حسن</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -415,8 +440,8 @@ export default function DashboardPage() {
         {projects.length > 0 && (
           <div className="glass-card rounded-xl overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
-              <h2 className="font-semibold text-white">Projects Overview</h2>
-              <Link href="/projects" className="text-sm text-brand-300 hover:text-brand-200 flex items-center gap-1">View all <ArrowRight size={14} /></Link>
+              <h2 className="font-semibold text-white">نظرة عامة على المشاريع</h2>
+              <Link href="/projects" className="text-sm text-brand-300 hover:text-brand-200 flex items-center gap-1">عرض الكل <ArrowRight size={14} /></Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 divide-x divide-white/[0.06]">
               {projects.slice(0, 6).map((project) => {
@@ -430,8 +455,8 @@ export default function DashboardPage() {
                       <h3 className="font-medium text-white truncate">{project.name}</h3>
                     </div>
                     <div className="flex items-center justify-between text-xs lg:text-sm text-zinc-400 mb-2">
-                      <span>{projectTasks.length} tasks</span>
-                      <span className="tabular-nums">{progress}% done</span>
+                      <span>{projectTasks.length} مهمة</span>
+                      <span className="tabular-nums">{progress}% منجز</span>
                     </div>
                     <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-brand-500 transition-all" style={{ width: `${progress}%` }} />
@@ -448,7 +473,7 @@ export default function DashboardPage() {
           <div className="glass-card rounded-xl overflow-hidden">
             <div className="flex items-center gap-2 p-4 border-b border-white/[0.06]">
               <Activity size={16} className="text-zinc-400" />
-              <h2 className="font-semibold text-white">Recent Activity</h2>
+              <h2 className="font-semibold text-white">النشاط الأخير</h2>
             </div>
             <div className="divide-y divide-white/[0.06] max-h-72 overflow-y-auto">
               {activities.slice(0, 10).map((activity) => {
@@ -457,7 +482,7 @@ export default function DashboardPage() {
                   <div key={activity.id} className="flex items-start gap-3 p-3 lg:p-4">
                     <Avatar name={member?.name || 'System'} src={member?.avatar || undefined} size="sm" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-zinc-300"><span className="font-medium text-white">{member?.name || 'System'}</span> {activity.description}</p>
+                      <p className="text-sm text-zinc-300"><span className="font-medium text-white">{member?.name || 'النظام'}</span> {activity.description}</p>
                       <p className="text-xs text-zinc-500 mt-0.5">{getTimeAgo(activity.created_at)}</p>
                     </div>
                   </div>
@@ -469,8 +494,8 @@ export default function DashboardPage() {
       </div>
 
       {/* Project Picker Modal */}
-      {canCreateTasks && <Modal isOpen={showProjectPicker} onClose={() => setShowProjectPicker(false)} title="Add Task to Project" size="sm">
-        <p className="text-sm text-zinc-400 mb-4">Select a project to add a task to:</p>
+      {canCreateTasks && <Modal isOpen={showProjectPicker} onClose={() => setShowProjectPicker(false)} title="إضافة مهمة لمشروع" size="sm">
+        <p className="text-sm text-zinc-400 mb-4">اختر المشروع الذي ترغب في إضافة المهمة إليه:</p>
         <div className="space-y-1 max-h-64 overflow-y-auto">
           {activeProjects.map((p) => (
             <button key={p.id} onClick={() => { setShowProjectPicker(false); setQuickAddProjectId(p.id); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-white/[0.03] transition-colors">

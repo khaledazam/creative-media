@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 function isPublicRoute(pathname: string) {
   return (
+    pathname === '/' ||
     // Local-only preview surfaces (visual iteration without a session); the
     // pages themselves also 404 outside development.
     (process.env.NODE_ENV === 'development' && pathname.startsWith('/dev')) ||
@@ -22,7 +23,8 @@ function isPublicRoute(pathname: string) {
     pathname.startsWith('/portal') ||
     pathname.startsWith('/api/portal') ||
     pathname.startsWith('/api/v1') ||
-    pathname.startsWith('/api/docs')
+    pathname.startsWith('/api/docs') ||
+    pathname.startsWith('/api/landing')
   );
 }
 

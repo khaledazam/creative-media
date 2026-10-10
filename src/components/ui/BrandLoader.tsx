@@ -23,9 +23,10 @@ const ARC = ORBIT_C / 4;
 const MARK = { cx: 403, cy: 413.5, r: 402, fileHeight: 820 };
 const MARK_D = MARK.r * 2;
 const MARK_CROP: CSSProperties = {
-  height: `${(MARK.fileHeight / MARK_D) * 100}%`,
-  left: `${(-(MARK.cx - MARK.r) / MARK_D) * 100}%`,
-  top: `${(-(MARK.cy - MARK.r) / MARK_D) * 100}%`,
+  height: '100%',
+  width: '100%',
+  objectFit: 'cover',
+  borderRadius: '50%',
 };
 
 /** Walks a status sequence one line at a time and stops on the last one. */

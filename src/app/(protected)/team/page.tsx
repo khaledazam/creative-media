@@ -208,7 +208,7 @@ export default function TeamPage() {
         const blobUrl = URL.createObjectURL(blob);
         updateTeamMember(editingMember.id, { avatar: blobUrl });
         setEditingMember((prev) => (prev ? { ...prev, avatar: blobUrl } : null));
-        toast('success', 'Avatar updated');
+        toast('success', 'تم تحديث الصورة الشخصية');
       } else {
         // Fixed path per member ; upsert replaces previous file, no storage bloat
         const path = `team/${editingMember.id}.jpg`;
@@ -223,10 +223,10 @@ export default function TeamPage() {
         const url = `${publicUrl}?t=${Date.now()}`;
         updateTeamMember(editingMember.id, { avatar: url });
         setEditingMember((prev) => (prev ? { ...prev, avatar: url } : null));
-        toast('success', 'Avatar updated');
+        toast('success', 'تم تحديث الصورة الشخصية');
       }
     } catch {
-      toast('error', 'Failed to upload avatar');
+      toast('error', 'فشل رفع الصورة الشخصية');
     } finally {
       setAvatarUploading(false);
     }
@@ -260,7 +260,7 @@ export default function TeamPage() {
       timezone: memberTz,
       ...multiplierUpdate(),
     });
-    toast('success', 'Team member updated');
+    toast('success', 'تم تحديث بيانات العضو بنجاح');
     handleCloseForm();
   };
 
@@ -282,7 +282,7 @@ export default function TeamPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        setEmailError(data.error || 'Failed to update email');
+        setEmailError(data.error || 'فشل تحديث البريد الإلكتروني');
         return;
       }
 
@@ -294,10 +294,10 @@ export default function TeamPage() {
         email: email.trim().toLowerCase(),
         ...multiplierUpdate(),
       });
-      toast('success', 'Team member updated');
+      toast('success', 'تم تحديث بيانات العضو بنجاح');
       handleCloseForm();
     } catch {
-      toast('error', 'Failed to update email');
+      toast('error', 'فشل تحديث البريد الإلكتروني');
     } finally {
       setFormLoading(false);
     }
@@ -345,14 +345,14 @@ export default function TeamPage() {
     const actions: RowAction[] = [];
     if (canManageTeam || member.id === currentTeamMemberId) {
       actions.push({
-        label: 'Edit',
+        label: 'تعديل',
         icon: <Edit size={14} />,
         onClick: () => handleOpenForm(member),
       });
     }
     if (isOwner && member.role !== 'owner') {
       actions.push({
-        label: 'Permissions',
+        label: 'الصلاحيات',
         icon: <SlidersHorizontal size={14} />,
         onClick: () => {
           setAccessMemberId(member.id);
@@ -362,7 +362,7 @@ export default function TeamPage() {
     }
     if (canManageCompensation && member.role !== 'owner') {
       actions.push({
-        label: 'Compensation',
+        label: 'المكافآت والرواتب',
         icon: <DollarSign size={14} />,
         onClick: () => setCompensationMember(member),
       });
@@ -386,7 +386,7 @@ export default function TeamPage() {
             </div>
           </div>
           {actions.length > 0 && (
-            <RowActionsMenu actions={actions} label={`Actions for ${m.name}`} />
+            <RowActionsMenu actions={actions} label={`إجراءات ${m.name}`} />
           )}
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -394,15 +394,15 @@ export default function TeamPage() {
             className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${roleColors[m.role]}`}
           >
             <RoleIcon size={12} />
-            {m.role.charAt(0).toUpperCase() + m.role.slice(1)}
+            {m.role === 'owner' ? 'مالك' : m.role === 'admin' ? 'مدير' : m.role === 'member' ? 'موظف' : m.role === 'guest' ? 'ضيف' : 'مساعد'}
           </span>
           {m.status === 'suspended' && (
             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-500/15 text-red-300">
-              Suspended
+              موقوف
             </span>
           )}
           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white/[0.06] text-zinc-300">
-            {count} task{count !== 1 ? 's' : ''}
+            {count} مهمة
           </span>
         </div>
       </div>
@@ -412,7 +412,7 @@ export default function TeamPage() {
   const columns: Column<TeamMember>[] = [
     {
       key: 'name',
-      header: 'Name',
+      header: 'الاسم',
       sortValue: (m) => m.name.toLowerCase(),
       render: (m) => (
         <div className="flex items-center gap-3 min-w-0">
@@ -423,7 +423,7 @@ export default function TeamPage() {
     },
     {
       key: 'title',
-      header: 'Title',
+      header: 'المسمى الوظيفي',
       className: 'hidden md:table-cell',
       sortValue: (m) => (m.title ?? '').toLowerCase(),
       render: (m) =>
@@ -433,44 +433,51 @@ export default function TeamPage() {
     },
     {
       key: 'email',
-      header: 'Email',
+      header: 'البريد الإلكتروني',
       className: 'hidden sm:table-cell',
       sortValue: (m) => m.email.toLowerCase(),
       render: (m) => <span className="text-zinc-300 truncate block max-w-[240px]">{m.email}</span>,
     },
     {
       key: 'role',
-      header: 'Role',
+      header: 'الدور',
       render: (m) => {
         const RoleIcon = roleIcons[m.role];
+        const roleLabels: Record<string, string> = {
+          owner: 'مالك الشركة',
+          admin: 'مدير',
+          member: 'موظف',
+          guest: 'ضيف',
+          agent: 'مساعد',
+        };
         return (
           <span
             className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${roleColors[m.role]}`}
           >
             <RoleIcon size={12} />
-            {m.role.charAt(0).toUpperCase() + m.role.slice(1)}
+            {roleLabels[m.role] || m.role}
           </span>
         );
       },
     },
     {
       key: 'status',
-      header: 'Status',
+      header: 'الحالة',
       className: 'hidden md:table-cell',
       render: (m) =>
         m.status === 'suspended' ? (
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/15 text-red-300">
-            Suspended
+            موقوف
           </span>
         ) : (
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-300">
-            Active
+            نشط
           </span>
         ),
     },
     {
       key: 'tasks',
-      header: 'Tasks',
+      header: 'المهام',
       align: 'right',
       sortValue: (m) => getTaskCount(m.id),
       render: (m) => {
@@ -480,13 +487,13 @@ export default function TeamPage() {
     },
     {
       key: 'actions',
-      header: <span className="sr-only">Actions</span>,
+      header: <span className="sr-only">الإجراءات</span>,
       align: 'right',
       width: 'w-12',
       render: (m) => {
         const actions = buildActions(m);
         if (actions.length === 0) return null;
-        return <RowActionsMenu actions={actions} label={`Actions for ${m.name}`} />;
+        return <RowActionsMenu actions={actions} label={`إجراءات ${m.name}`} />;
       },
     },
   ];
@@ -494,9 +501,9 @@ export default function TeamPage() {
   return (
     <div className="animate-fadeIn min-h-screen">
       <Header
-        title="Team"
-        subtitle={<span className="hidden sm:inline">{team.length} team members</span>}
-        searchPlaceholder="Search team members..."
+        title="فريق العمل"
+        subtitle={<span className="hidden sm:inline">{team.length} عضو</span>}
+        searchPlaceholder="البحث عن أعضاء الفريق..."
         actions={
           canManageTeam && !isDemoMode ? (
             <div className="flex gap-2">
@@ -509,11 +516,11 @@ export default function TeamPage() {
                     setIsAccessOpen(true);
                   }}
                 >
-                  Roles & permissions
+                  الصلاحيات والأدوار
                 </Button>
               )}
               <Button icon={<UserPlus size={16} />} onClick={() => setIsInviteOpen(true)}>
-                Invite
+                دعوة عضو
               </Button>
             </div>
           ) : undefined
@@ -524,15 +531,15 @@ export default function TeamPage() {
         {team.length === 0 ? (
           <div className="text-center py-12 glass-card rounded-xl">
             <User className="mx-auto mb-3 text-zinc-500" size={40} />
-            <h3 className="font-medium text-zinc-300 mb-1">No team members yet</h3>
-            <p className="text-sm text-zinc-400">Team members are managed through Supabase</p>
+            <h3 className="font-medium text-zinc-300 mb-1">لا يوجد أعضاء في الفريق</h3>
+            <p className="text-sm text-zinc-400">تتم إدارة أعضاء الفريق من خلال لوحة التحكم</p>
           </div>
         ) : (
           <DataTable
             columns={columns}
             data={filtered}
             keyExtractor={(m) => m.id}
-            emptyState="No team members match your search"
+            emptyState="لم يتم العثور على أعضاء مطابقي للبحث"
             mobileCard={mobileCard}
           />
         )}
@@ -544,13 +551,13 @@ export default function TeamPage() {
         onClose={() => setIsInviteOpen(false)}
         onSuccess={(member) => {
           upsertLocalTeamMember(member);
-          toast('success', `${member.name} has been invited`);
+          toast('success', `تمت دعوة ${member.name} بنجاح`);
         }}
         canAssignOwner={isOwner}
       />
 
       {/* Edit Member Modal */}
-      <Modal isOpen={isFormOpen} onClose={handleCloseForm} title="Edit Team Member" size="md">
+      <Modal isOpen={isFormOpen} onClose={handleCloseForm} title="تعديل بيانات العضو" size="md">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex justify-center">
             <AvatarUpload
@@ -573,7 +580,7 @@ export default function TeamPage() {
                       if (editingMember) {
                         updateTeamMember(editingMember.id, { avatar: '' });
                         setEditingMember((prev) => (prev ? { ...prev, avatar: '' } : null));
-                        toast('success', 'Avatar removed');
+                        toast('success', 'تم حذف الصورة الشخصية');
                       }
                     }
                   : undefined
@@ -582,22 +589,22 @@ export default function TeamPage() {
           </div>
 
           <Input
-            label="Name"
+            label="الاسم"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Enter full name"
+            placeholder="الاسم الكامل"
             required
           />
 
           <Input
-            label="Title"
+            label="المسمى الوظيفي"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder={'e.g. "Developer", "Auditor"'}
+            placeholder={'مثال: مهندس موقع'}
           />
 
           <Input
-            label="Email"
+            label="البريد الإلكتروني"
             type="email"
             value={email}
             onChange={(e) => {
@@ -610,27 +617,27 @@ export default function TeamPage() {
           />
 
           <Select
-            label="Role"
+            label="الدور (الصلاحية)"
             value={role}
             onChange={(value) => setRole(value as TeamMember['role'])}
             disabled={!isOwner || editingMember?.id === currentTeamMemberId}
             options={[
-              { value: 'owner', label: 'Owner' },
-              { value: 'admin', label: 'Admin' },
-              { value: 'member', label: 'Member' },
-              { value: 'guest', label: 'Guest' },
-              { value: 'agent', label: 'Agent' },
+              { value: 'owner', label: 'مالك الشركة' },
+              { value: 'admin', label: 'مدير نظام / مهندس أول' },
+              { value: 'member', label: 'موظف / مهندس' },
+              { value: 'guest', label: 'ضيف / مقاول باطن' },
+              { value: 'agent', label: 'مساعد ذكي' },
             ]}
           />
 
           {canManageTeam && editingMember?.id !== currentTeamMemberId && (
             <Select
-              label="Account status"
+              label="حالة الحساب"
               value={memberStatus}
               onChange={(value) => setMemberStatus(value as 'active' | 'suspended')}
               options={[
-                { value: 'active', label: 'Active' },
-                { value: 'suspended', label: 'Suspended' },
+                { value: 'active', label: 'نشط' },
+                { value: 'suspended', label: 'موقوف' },
               ]}
             />
           )}
@@ -648,7 +655,7 @@ export default function TeamPage() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-1.5">Timezone</label>
+            <label className="block text-sm font-medium text-zinc-300 mb-1.5">المنطقة الزمنية</label>
             <div className="relative" ref={tzTriggerRef}>
               <button
                 type="button"
@@ -688,14 +695,14 @@ export default function TeamPage() {
                         type="text"
                         value={tzSearch}
                         onChange={(e) => setTzSearch(e.target.value)}
-                        placeholder="Search timezones..."
+                        placeholder="ابحث عن منطقة زمنية..."
                         className="bg-white/[0.03] py-1.5 rounded-md"
                         autoFocus
                       />
                     </div>
                     <div className="min-h-0 flex-1 overflow-y-auto">
                       {filteredTz.length === 0 ? (
-                        <p className="px-3 py-2 text-sm text-zinc-500">No matching timezones</p>
+                        <p className="px-3 py-2 text-sm text-zinc-500">لا توجد مناطق تطابق البحث</p>
                       ) : (
                         filteredTz.map((group) => (
                           <div key={group.label}>
@@ -735,10 +742,10 @@ export default function TeamPage() {
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="ghost" onClick={handleCloseForm} disabled={formLoading}>
-              Cancel
+              إلغاء
             </Button>
             <Button type="submit" disabled={formLoading}>
-              {formLoading ? 'Saving...' : 'Save Changes'}
+              {formLoading ? 'جاري الحفظ...' : 'حفظ التغييرات'}
             </Button>
           </div>
         </form>
@@ -748,9 +755,9 @@ export default function TeamPage() {
         isOpen={showEmailConfirm}
         onClose={() => setShowEmailConfirm(false)}
         onConfirm={handleConfirmEmailChange}
-        title="Change Email Address"
-        message={`This will change the login email for ${editingMember?.name || 'this member'} from "${editingMember?.email}" to "${email.trim().toLowerCase()}". They'll need to use the new email to sign in.`}
-        confirmLabel="Update Email"
+        title="تغيير البريد الإلكتروني"
+        message={`هذا الإجراء سيقوم بتغيير بريد الدخول للموظف ${editingMember?.name || 'هذا العضو'} من "${editingMember?.email}" إلى "${email.trim().toLowerCase()}". سيحتاج الموظف إلى استخدام البريد الجديد لتسجيل الدخول.`}
+        confirmLabel="تحديث البريد"
         variant="default"
         doubleConfirm={false}
       />

@@ -107,9 +107,9 @@ function BalanceSummary({
 
   return (
     <div className="vm-tile mb-7 px-5 py-5 sm:px-6">
-      <p className="vm-label">Balance due</p>
+      <p className="vm-label">الرصيد المستحق</p>
       <p className={`vm-stat mt-2.5 ${balanceDue > 0 ? 'text-(--vm-copper-300)' : ''}`}>${formatMoney(balanceDue)}</p>
-      <p className="vm-faint mt-2.5 max-w-[46ch] text-[13px] leading-relaxed">{note}</p>
+      <p className="vm-faint mt-2.5 max-w-[46ch] text-[13px] leading-relaxed" dir="auto">{note}</p>
     </div>
   );
 }
@@ -134,12 +134,12 @@ export function InvoicesSection({
 
   return (
     <SectionCard sectionKey="show_invoices">
-      <SectionHeader title="Invoices" right={<SectionCount>{invoices.length}</SectionCount>} />
+      <SectionHeader title="الفواتير" right={<SectionCount>{invoices.length}</SectionCount>} />
 
       <BalanceSummary invoices={invoices} billing={billing} />
 
       {sorted.length === 0 && (
-        <p className="vm-muted text-[15px]">No invoices yet.</p>
+        <p className="vm-muted text-[15px]">لا توجد فواتير بعد.</p>
       )}
 
       <ul>
@@ -156,7 +156,7 @@ export function InvoicesSection({
           className="vm-btn vm-btn-ghost vm-btn-sm mt-6 w-full sm:w-auto"
         >
           <ChevronDown size={15} aria-hidden="true" className={`transition-transform ${showAll ? 'rotate-180' : ''}`} />
-          {showAll ? 'Show fewer' : `Show all ${sorted.length}`}
+          {showAll ? 'إظهار أقل' : `عرض الكل ${sorted.length}`}
         </button>
       )}
     </SectionCard>

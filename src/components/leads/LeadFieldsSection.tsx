@@ -87,12 +87,12 @@ export function LeadFieldsSection({ leadId, readOnly = false }: LeadFieldsSectio
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-white">Lead Details</h2>
+        <h2 className="font-semibold text-white">تفاصيل إضافية</h2>
         {!readOnly && <Button
           onClick={() => setIsAddOpen(true)}
           icon={<Plus size={16} />}
         >
-          Add Field
+          إضافة حقل
         </Button>}
       </div>
 
@@ -190,8 +190,8 @@ export function LeadFieldsSection({ leadId, readOnly = false }: LeadFieldsSectio
           <div className="w-10 h-10 rounded-full bg-white/[0.06] flex items-center justify-center mb-3">
             <Briefcase size={18} className="text-zinc-500" />
           </div>
-          <p className="text-sm font-medium text-zinc-400">No details added yet</p>
-          <p className="text-xs text-zinc-500 mt-1">Add fields to track lead information</p>
+          <p className="text-sm font-medium text-zinc-400">لا توجد تفاصيل بعد</p>
+          <p className="text-xs text-zinc-500 mt-1">قم بإضافة حقول لتتبع معلومات العميل</p>
         </div>
       )}
 
@@ -272,9 +272,9 @@ function LeadFieldItem({ definition, value, isEditing, onStartEdit, onStopEdit, 
           isOpen={showDeleteConfirm}
           onClose={() => setShowDeleteConfirm(false)}
           onConfirm={onRemove}
-          title="Delete Field"
-          message={`Remove the "${definition.label}" field from this lead?`}
-          confirmLabel="Delete"
+          title="حذف الحقل"
+          message={`هل تريد إزالة حقل "${definition.label}" من هذا العميل؟`}
+          confirmLabel="حذف"
           variant="danger"
         />}
       </div>
@@ -316,10 +316,10 @@ function LeadFieldItem({ definition, value, isEditing, onStartEdit, onStopEdit, 
           />
           <div className="flex justify-end gap-2">
             <button onClick={onStopEdit} className="px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/[0.06] rounded-lg transition-colors">
-              Cancel
+              إلغاء
             </button>
             <button onClick={handleSave} className="px-3 py-1.5 text-xs text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors">
-              Save
+              حفظ
             </button>
           </div>
         </div>
@@ -358,7 +358,7 @@ function FieldValueDisplay({
   categoryConfig: (typeof CATEGORY_CONFIG)[LeadFieldCategory];
 }) {
   if (!value) {
-    return <p className="text-sm text-zinc-500 italic">Not set</p>;
+    return <p className="text-sm text-zinc-500 italic">لم يحدد</p>;
   }
 
   switch (definition.type) {
@@ -389,7 +389,7 @@ function FieldValueDisplay({
       } catch {
         tags = value ? [value] : [];
       }
-      if (tags.length === 0) return <p className="text-sm text-zinc-500 italic">Not set</p>;
+      if (tags.length === 0) return <p className="text-sm text-zinc-500 italic">لم يحدد</p>;
 
       // Pros get a subtle green tint, Cons subtle red, everything else neutral
       const isPros = definition.key === 'pros';
@@ -470,7 +470,7 @@ function SelectEditor({
       </div>
       <div className="flex justify-end">
         <button onClick={onCancel} className="px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/[0.06] rounded-lg transition-colors">
-          Cancel
+          إلغاء
         </button>
       </div>
     </div>
@@ -570,7 +570,7 @@ function MultiSelectEditor({
             value={customInput}
             onChange={setCustomInput}
             onKeyDown={handleCustomKeyDown}
-            placeholder="Add custom tag..."
+            placeholder="إضافة وسم مخصص..."
             size="sm"
             className="flex-1"
           />
@@ -579,20 +579,20 @@ function MultiSelectEditor({
             disabled={!customInput.trim()}
             className="px-2.5 py-1.5 text-xs font-medium text-brand-300 hover:bg-brand-500/15 rounded-lg transition-colors disabled:opacity-50"
           >
-            Add
+            إضافة
           </button>
         </div>
       )}
 
       <div className="flex justify-end gap-2">
         <button onClick={onCancel} className="px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/[0.06] rounded-lg transition-colors">
-          Cancel
+          إلغاء
         </button>
         <button
           onClick={() => onSave(JSON.stringify(selected))}
           className="px-3 py-1.5 text-xs text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors"
         >
-          Save
+          حفظ
         </button>
       </div>
     </div>
@@ -622,7 +622,7 @@ function AddFieldDropdown({
   })).filter(g => g.definitions.length > 0);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add Field" size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} title="إضافة حقل" size="sm">
       {grouped.length > 0 ? (
         <div className="space-y-3 max-h-[60vh] overflow-y-auto -mx-2 px-2">
           {grouped.map(({ category, definitions }) => {
@@ -655,7 +655,7 @@ function AddFieldDropdown({
         </div>
       ) : (
         <div className="text-center py-6 text-zinc-400">
-          <p className="text-sm">All fields have been added</p>
+          <p className="text-sm">تمت إضافة جميع الحقول المتاحة</p>
         </div>
       )}
     </Modal>

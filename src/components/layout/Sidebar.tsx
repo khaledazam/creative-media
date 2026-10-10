@@ -18,6 +18,7 @@ import {
   Bell,
   ChevronDown,
   DollarSign,
+  Globe,
 } from 'lucide-react';
 import { useApp } from '@/lib/store';
 import { computeNeedsYou } from '@/lib/autonomy';
@@ -110,21 +111,48 @@ export function Sidebar() {
     agentActivity,
   }).length;
 
-  const navItems = [
-    { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', badge: 0, overlay: false },
-    { href: '/my-tasks', icon: ListTodo, label: 'My Tasks', badge: radarCount, overlay: true },
-    ...(hasPermission(access, 'projects.read') || hasPermission(access, 'projects.read_all')
-      ? [{ href: '/projects', icon: FolderKanban, label: 'Projects', badge: 0, overlay: false }] : []),
-    ...(hasPermission(access, 'leads.read') || hasPermission(access, 'leads.read_all') || hasPermission(access, 'leads.manage')
-      ? [{ href: '/leads', icon: Target, label: 'Leads', badge: 0, overlay: false }] : []),
-    ...(hasPermission(access, 'contacts.read') || hasPermission(access, 'contacts.read_all')
-      ? [{ href: '/contacts', icon: UserCircle, label: 'Contacts', badge: 0, overlay: false }] : []),
-    ...(hasPermission(access, 'team.read') || hasPermission(access, 'team.manage')
-      ? [{ href: '/team', icon: Users, label: 'Team', badge: 0, overlay: false }] : []),
-    ...(hasPermission(access, 'finance.company.read') || hasPermission(access, 'earnings.own.read')
-      ? [{ href: '/finances', icon: DollarSign, label: 'Finances', badge: 0, overlay: false }] : []),
-    ...(isAgentsEnabled && canManageAgents ? [{ href: '/agent', icon: Bot, label: 'Agent', badge: pendingSuggestionCount, overlay: true }] : []),
-    { href: '/notifications', icon: Bell, label: 'Notifications', badge: unreadNotifications, overlay: true },
+  const navGroups = [
+    {
+      items: [
+        { href: '/dashboard', icon: LayoutDashboard, label: 'لوحة التحكم', badge: 0 },
+      ]
+    },
+    {
+      label: 'إدارة العملاء',
+      items: [
+        { href: '/leads', icon: Target, label: 'العملاء المحتملون', badge: 0 },
+        { href: '/customers', icon: UserCircle, label: 'العملاء', badge: 0 },
+      ]
+    },
+    {
+      label: 'المبيعات',
+      items: [
+        { href: '/quotations', icon: DollarSign, label: 'عروض الأسعار', badge: 0 },
+        { href: '/contracts', icon: FolderKanban, label: 'العقود', badge: 0 },
+      ]
+    },
+    {
+      label: 'المشاريع',
+      items: [
+        { href: '/projects', icon: FolderKanban, label: 'المشاريع', badge: 0 },
+        { href: '/tasks', icon: ListTodo, label: 'المهام', badge: radarCount },
+        { href: '/site-visits', icon: CheckSquare, label: 'معاينات المواقع', badge: 0 },
+        { href: '/files', icon: Bot, label: 'الملفات', badge: 0 },
+      ]
+    },
+    {
+      label: 'الموقع والتسويق',
+      items: [
+        { href: '/website-settings', icon: Globe, label: 'إدارة الموقع وسابقة الأعمال', badge: 0 },
+      ]
+    },
+    {
+      items: [
+        { href: '/team', icon: Users, label: 'الفريق', badge: 0 },
+        { href: '/portal', icon: UserCircle, label: 'بوابة العميل', badge: 0 },
+        { href: '/settings', icon: Bot, label: 'الإعدادات', badge: 0 },
+      ]
+    }
   ];
 
   const closeSidebar = () => setIsOpen(false);
@@ -165,31 +193,22 @@ export function Sidebar() {
         </div>
 
         {/* Main nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto sidebar-scroll">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-            // Agent is the one expandable group: the row toggles a sub-list of
-            // the three agent surfaces instead of navigating, so the pages'
-            // headers no longer need their own switcher.
-            if (item.href === '/agent') {
-              const agentExpanded = agentOpen ?? pathname.startsWith('/agent');
-              const agentLinks = [
-                // Project detail pages belong to the dashboard flow.
-                { href: '/agent', label: 'Dashboard', active: pathname === '/agent' || pathname.startsWith('/agent/projects') },
-                { href: '/agent/analytics', label: 'Analytics', active: pathname === '/agent/analytics' },
-                { href: '/agent/live', label: 'Live', active: pathname === '/agent/live' },
-              ];
-              // The parent row reads active only while one of its tabs is the
-              // current route; opening the dropdown alone does not color it.
-              // The child list stays a quiet rail so the two never compete as
-              // twin pills.
-              return (
-                <div key={item.href}>
-                  <button
-                    type="button"
-                    onClick={() => setAgentOpen(!agentExpanded)}
-                    aria-expanded={agentExpanded}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+        <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto sidebar-scroll">
+          {navGroups.map((group, gIdx) => (
+            <div key={gIdx} className="space-y-1">
+              {group.label && (
+                <div className="px-3 pb-1 pt-2">
+                  <p className="text-xs text-zinc-500 font-medium">{group.label}</p>
+                </div>
+              )}
+              {group.items.map((item) => {
+                const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={closeSidebar}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 ${
                       isActive
                         ? 'bg-brand-500/15 text-brand-300 glow-brand-soft'
                         : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-200'
@@ -197,98 +216,24 @@ export function Sidebar() {
                   >
                     <span className="relative flex-shrink-0 leading-none">
                       <item.icon size={18} />
-                      {item.badge > 0 && (
-                        <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold text-white bg-brand-500">
-                          {item.badge > 9 ? '9+' : item.badge}
-                        </span>
-                      )}
                     </span>
-                    <span className="text-sm font-medium flex-1 text-left">{item.label}</span>
-                    <ChevronDown
-                      size={14}
-                      className={`flex-shrink-0 transition-transform ${agentExpanded ? '' : '-rotate-90'}`}
-                      aria-hidden="true"
-                    />
-                  </button>
-                  {agentExpanded && (
-                    /* Rail list, not pills: one hairline centered under the
-                       parent icon (row px-3 = 12px + half the 18px icon =
-                       21px), labels indented to meet the parent label at
-                       42px. The active surface reads as brand text plus a
-                       short brand tick on the rail. */
-                    <div className="relative ml-[20.5px] mt-0.5 mb-1 animate-slideDown">
-                      <span className="absolute left-0 top-1 bottom-1 w-px bg-white/[0.08]" aria-hidden="true" />
-                      {agentLinks.map(link => (
-                        <Link
-                          key={link.href}
-                          href={link.href}
-                          onClick={closeSidebar}
-                          // Warm the report on intent. Pointing at the link is a
-                          // reliable signal a moment before the click, and the
-                          // query is cached by range, so arriving costs nothing:
-                          // the page opens with its figures already measured.
-                          onMouseEnter={link.href === '/agent/analytics'
-                            ? () => prefetchAgentAnalytics(defaultAgentAnalyticsRange(currentMember?.timezone))
-                            : undefined}
-                          onFocus={link.href === '/agent/analytics'
-                            ? () => prefetchAgentAnalytics(defaultAgentAnalyticsRange(currentMember?.timezone))
-                            : undefined}
-                          aria-current={link.active ? 'page' : undefined}
-                          className={`relative flex items-center pl-[21.5px] pr-3 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
-                            link.active ? 'text-brand-300' : 'text-zinc-500 hover:text-zinc-200'
-                          }`}
-                        >
-                          {link.active && (
-                            <span className="absolute -left-[0.5px] top-1/2 -translate-y-1/2 h-4 w-[2px] rounded-full bg-brand-400" aria-hidden="true" />
-                          )}
-                          {link.label}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            }
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={closeSidebar}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 ${
-                  isActive
-                    ? 'bg-brand-500/15 text-brand-300 glow-brand-soft'
-                    : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-200'
-                }`}
-              >
-                <span className="relative flex-shrink-0 leading-none">
-                  <item.icon size={18} />
-                  {item.overlay && item.badge > 0 && (
-                    /* Notifications alone go red: since the notification pruning,
-                       one firing means an agent is blocked on a decision only
-                       Ciaran can make. The Agent badge stays brand because it is
-                       a review queue, not a blocker. */
-                    <span className={`absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold text-white ${
-                      item.href === '/notifications' ? 'bg-red-600' : 'bg-brand-500'
-                    }`}>
-                      {item.badge > 9 ? '9+' : item.badge}
-                    </span>
-                  )}
-                </span>
-                <span className="text-sm font-medium flex-1">{item.label}</span>
-                {!item.overlay && item.badge > 0 && (
-                  <span className="min-w-[20px] h-5 flex items-center justify-center rounded-full bg-brand-500 text-white text-xs font-medium px-1.5">
-                    {item.badge}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
+                    <span className="text-sm font-medium flex-1">{item.label}</span>
+                    {item.badge > 0 && (
+                      <span className="min-w-[20px] h-5 flex items-center justify-center rounded-full bg-brand-500 text-white text-xs font-medium px-1.5">
+                        {item.badge}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
 
           {/* Projects section */}
           {(loading || projects.length > 0) && (
           <div className="pt-4">
             <div className="flex items-center justify-between px-3 mb-2">
-              <p className="text-xs text-zinc-600 uppercase tracking-wider font-medium">Projects</p>
+              <p className="text-xs text-zinc-600 uppercase tracking-wider font-medium">المشاريع</p>
               {hasPermission(access, 'projects.manage') && (
                 <Link
                   href="/projects?new=true"
@@ -333,10 +278,10 @@ export function Sidebar() {
                         )}
                         <span className="text-sm truncate flex-1 min-w-0">{project.name}</span>
                         {isClockedIn && (
-                          <Tooltip content="Time tracker is active" position="right">
+                          <Tooltip content="عداد الوقت يعمل" position="right">
                             <span
                               role="status"
-                              aria-label="Time tracker is active for this project"
+                              aria-label="عداد الوقت يعمل لهذا المشروع"
                               className="relative inline-flex h-2 w-2 flex-shrink-0"
                             >
                               <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-safe:animate-ping" aria-hidden="true" />
@@ -354,7 +299,7 @@ export function Sidebar() {
                       onClick={closeSidebar}
                       className="flex items-center gap-2.5 px-3 py-2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
                     >
-                      <span>+{projects.filter(p => p.status === 'active').length - 5} more</span>
+                      <span>+{projects.filter(p => p.status === 'active').length - 5} المزيد</span>
                     </Link>
                   )}
                 </>
@@ -395,7 +340,7 @@ export function Sidebar() {
               className="w-full flex items-center gap-3 px-2 py-2 mt-1 rounded-lg text-zinc-400 hover:bg-white/5 hover:text-zinc-200 transition-colors"
             >
               <LogOut size={16} />
-              <span className="text-sm">Sign out</span>
+              <span className="text-sm">تسجيل الخروج</span>
             </button>
           )}
         </div>

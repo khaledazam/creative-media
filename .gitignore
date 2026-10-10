@@ -33,6 +33,13 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env
 .env.local
+.env*.local
+
+# whatsapp session & temp
+.wwebjs_auth/
+.wwebjs_cache/
+*.bak
+supabase/.temp/
 
 # vercel
 .vercel
