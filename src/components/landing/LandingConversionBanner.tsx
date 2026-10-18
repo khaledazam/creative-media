@@ -13,7 +13,7 @@ export function LandingConversionBanner() {
         <div
           className="absolute inset-0 bg-cover bg-center opacity-20 mix-blend-luminosity"
           style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?auto=format&fit=crop&w=1920&q=85')`,
+            backgroundImage: `url('/landing/real/creative-media-hq.jpg')`,
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#111412] via-[#111412]/90 to-[#111412]" />

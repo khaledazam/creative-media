@@ -103,8 +103,7 @@ export const COMPANY_INFO: CompanyInformation = {
         'تشكيلات معمارية عصرية وقص هندسي بالمليمتر',
         'تسليم مطابق للأكواد الهندسية مع ضمان الجودة',
       ],
-      image:
-        'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1400&q=85',
+      image: '/landing/real/delta-travel-corner-building.jpg',
     },
     {
       id: 'interior-fitout',
@@ -118,8 +117,7 @@ export const COMPANY_INFO: CompanyInformation = {
         'تشطيبات ديكورية بالخشب وبديل الرخام وبانوهات CNC',
         'توزيع إضاءة مدروس هندسياً يعزز فخامة المكان',
       ],
-      image:
-        'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1400&q=85',
+      image: '/landing/real/looz-cafe-interior.jpg',
     },
     {
       id: 'storefronts-signs',
@@ -133,8 +131,7 @@ export const COMPANY_INFO: CompanyInformation = {
         'شاشات LED خارجية وداخلية بدقات وضوح عالية',
         'تجليد متكامل لواجهة المتجر يعكس هوية البراند',
       ],
-      image:
-        'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1400&q=85',
+      image: '/landing/real/creative-media-hq.jpg',
     },
   ],
   socials: {

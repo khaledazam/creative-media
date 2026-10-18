@@ -8,6 +8,7 @@ import { LandingHero } from '@/components/landing/LandingHero';
 import { LandingAbout } from '@/components/landing/LandingAbout';
 import { LandingExpertise } from '@/components/landing/LandingExpertise';
 import { LandingPortfolio } from '@/components/landing/LandingPortfolio';
+import { LandingNeonCatalog } from '@/components/landing/LandingNeonCatalog';
 import { LandingProcess } from '@/components/landing/LandingProcess';
 import { LandingFeatures } from '@/components/landing/LandingFeatures';
 import { LandingConversionBanner } from '@/components/landing/LandingConversionBanner';
@@ -51,11 +52,14 @@ export default function HomePage() {
       {/* 4. Our Expertise & Business Pillars */}
       <LandingExpertise onSelectService={handleSelectService} />
 
-      {/* 5. Selected Projects Portfolio Gallery */}
+      {/* 5. Real Projects Portfolio Gallery (100% Authentic Works) */}
       <LandingPortfolio
         portfolio={config.portfolio}
         onSelectProjectForQuote={handleSelectProjectForQuote}
       />
+
+      {/* 5.5 Zone-X Neon & 3D Signage Interactive Catalog with Pricing */}
+      <LandingNeonCatalog onSelectProductForQuote={handleSelectProjectForQuote} />
 
       {/* 6. Architectural Workflow & Process */}
       <LandingProcess />

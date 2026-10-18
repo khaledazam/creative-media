@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { COMPANY_INFO } from '@/lib/company-info';
 import { ArrowLeft, Check, Layers, Store, Building, Sparkles } from 'lucide-react';
 
@@ -50,7 +51,7 @@ export function LandingExpertise({ onSelectService }: LandingExpertiseProps) {
                     loading="lazy"
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).src =
-                        'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1400&q=85';
+                        '/landing/real/creative-media-hq.jpg';
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#111412] via-transparent to-transparent opacity-60" />
@@ -94,7 +95,7 @@ export function LandingExpertise({ onSelectService }: LandingExpertiseProps) {
                   </div>
 
                   {/* Action CTA */}
-                  <div className="pt-4">
+                  <div className="pt-4 flex flex-wrap items-center gap-3">
                     <a
                       href="#contact"
                       onClick={() => onSelectService && onSelectService(pillar.title)}
@@ -103,6 +104,17 @@ export function LandingExpertise({ onSelectService }: LandingExpertiseProps) {
                       <span>طلب استشارة أو مقايسة لـ {pillar.title}</span>
                       <ArrowLeft size={14} />
                     </a>
+
+                    {pillar.id === 'storefronts-signs' && (
+                      <a
+                        href="#neon"
+                        className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold text-[#49d7ff] bg-[#49d7ff]/10 hover:bg-[#49d7ff]/20 border border-[#49d7ff]/30 shadow-[0_0_15px_rgba(73,215,255,0.2)] transition-all cursor-pointer"
+                      >
+                        <Sparkles size={14} className="text-[#49d7ff]" />
+                        <span>⚡ كتالوج النيون واليافطات 3D والأسعار</span>
+                        <ArrowLeft size={14} />
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>

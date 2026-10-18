@@ -1082,3 +1082,50 @@ a.bg-brand-500 {
   animation: pulse-glow 5s ease-in-out infinite;
 }
 
+/* ── NEON & 3D SIGNAGE DESIGN SUITE (ZoneX Visual Identity) ── */
+:root {
+  --neon-bg: #07090d;
+  --neon-bg-card: #0f141d;
+  --neon-gold: #f4b43f;
+  --neon-gold-bright: #ffc85f;
+  --neon-cyan: #49d7ff;
+  --neon-green: #4fe49a;
+  --neon-red: #ff6f78;
+}
+
+.neon-glow-gold {
+  text-shadow: 0 0 10px rgba(244, 180, 63, 0.65), 0 0 24px rgba(244, 180, 63, 0.35);
+}
+
+.neon-glow-cyan {
+  text-shadow: 0 0 10px rgba(73, 215, 255, 0.7), 0 0 26px rgba(73, 215, 255, 0.35);
+}
+
+.neon-box-gold {
+  box-shadow: 0 0 25px -4px rgba(244, 180, 63, 0.22), 0 14px 38px rgba(0, 0, 0, 0.5);
+}
+
+.neon-box-cyan {
+  box-shadow: 0 0 25px -4px rgba(73, 215, 255, 0.22), 0 14px 38px rgba(0, 0, 0, 0.5);
+}
+
+.neon-divider {
+  background: linear-gradient(90deg, transparent, rgba(244, 180, 63, 0.55), rgba(73, 215, 255, 0.40), transparent);
+}
+
+@keyframes neon-letter-bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.75; }
+  45% { transform: translateY(-12px); opacity: 1; }
+  65% { transform: translateY(2px); opacity: 0.92; }
+}
+
+@keyframes neon-sweep-shine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-neon-sweep {
+  animation: neon-sweep-shine 2.2s ease-in-out infinite;
+}
+
+

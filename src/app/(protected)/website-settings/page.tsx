@@ -94,7 +94,7 @@ export default function WebsiteSettingsPage() {
       completionYear: '2026',
       description: 'وصف تفصيلي للأعمال المنفذة في هذا المشروع...',
       featured: true,
-      coverImage: 'https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?auto=format&fit=crop&w=1200&q=80',
+      coverImage: '/landing/real/creative-media-hq.jpg',
       tags: ['واجهات', 'كلادينج'],
     };
     setFormData((prev) => ({
@@ -116,7 +116,7 @@ export default function WebsiteSettingsPage() {
       completionYear: new Date().getFullYear().toString(),
       description: p.description || 'أعمال هندسية وإعلانية متكاملة بأعلى معايير الجودة.',
       featured: true,
-      coverImage: 'https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?auto=format&fit=crop&w=1200&q=80',
+      coverImage: '/landing/real/creative-media-hq.jpg',
       tags: ['Creative Media', 'سابقة أعمال'],
       linkedProjectId: p.id,
     };
@@ -497,7 +497,7 @@ export default function WebsiteSettingsPage() {
                         type="text"
                         value={item.coverImage}
                         onChange={(e) => handleUpdatePortfolio(item.id, { coverImage: e.target.value })}
-                        placeholder="https://images.unsplash.com/..."
+                        placeholder="/landing/real/creative-media-hq.jpg"
                         className="flex-1 px-3 py-2 bg-black/40 border border-border-base rounded-lg text-xs text-white focus:outline-none focus:border-brand-500"
                       />
                       {item.coverImage && (

@@ -38,6 +38,7 @@ export interface LandingPortfolioItem {
   description: string;
   featured: boolean;
   coverImage: string;
+  beforeImage?: string;
   galleryImages?: string[];
   tags: string[];
   linkedProjectId?: string;

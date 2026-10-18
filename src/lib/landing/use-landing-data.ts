@@ -4,7 +4,21 @@ import { useState, useEffect, useCallback } from 'react';
 import { LandingPageConfig } from './types';
 import { defaultLandingConfig } from './default-data';
 
-const STORAGE_KEY = 'creative_media_landing_config';
+const STORAGE_KEY = 'creative_media_landing_config_v5';
+
+function isDataValid(data: LandingPageConfig): boolean {
+  if (!data || !Array.isArray(data.portfolio)) return false;
+  // If data contains Unsplash or old placeholder titles, it's stale/fake
+  const hasFake = data.portfolio.some(
+    (p) =>
+      p.coverImage?.includes('unsplash.com') ||
+      p.title?.includes('معرض تجاري فاخر') ||
+      p.clientName === 'معرض تجاري فاخر' ||
+      p.clientName === 'مقر إداري' ||
+      p.title?.includes('مجموعة شركات استثمارية')
+  );
+  return !hasFake;
+}
 
 export function useLandingData() {
   const [config, setConfig] = useState<LandingPageConfig>(defaultLandingConfig);
@@ -16,22 +30,33 @@ export function useLandingData() {
   useEffect(() => {
     let isMounted = true;
 
+    // Purge old legacy keys
+    try {
+      localStorage.removeItem('creative_media_landing_config');
+      localStorage.removeItem('creative_media_landing_config_v2');
+      localStorage.removeItem('creative_media_landing_config_v3');
+    } catch {}
+
     async function load() {
       // 1. Try local storage first for immediate paint
       try {
         const local = localStorage.getItem(STORAGE_KEY);
         if (local) {
           const parsed = JSON.parse(local);
-          if (isMounted) setConfig(parsed);
+          if (isMounted && isDataValid(parsed)) {
+            setConfig(parsed);
+          } else {
+            localStorage.removeItem(STORAGE_KEY);
+          }
         }
       } catch {}
 
-      // 2. Fetch fresh config from server API
+      // 2. Fetch fresh config from server API with no-store
       try {
-        const res = await fetch('/api/landing');
+        const res = await fetch('/api/landing?t=' + Date.now(), { cache: 'no-store' });
         if (res.ok) {
           const json = await res.json();
-          if (json?.data && isMounted) {
+          if (json?.data && isMounted && isDataValid(json.data)) {
             setConfig(json.data);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(json.data));
           }

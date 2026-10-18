@@ -16,13 +16,13 @@ export function LandingAbout() {
           <div className="w-full lg:w-[46%] relative">
             <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
               <img
-                src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=85"
+                src="/landing/real/delta-travel-corner-building.jpg"
                 alt="تنفيذ واجهات معمارية وكلادينج Creative Media"
                 className="w-full aspect-[4/3] object-cover group-hover:scale-103 transition-transform duration-700 ease-out"
                 loading="lazy"
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).src =
-                    'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=85';
+                    '/landing/real/creative-media-hq.jpg';
                 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#111412] via-transparent to-transparent opacity-80" />

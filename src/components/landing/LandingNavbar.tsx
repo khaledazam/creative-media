@@ -45,7 +45,8 @@ export function LandingNavbar({ phone, whatsapp }: LandingNavbarProps) {
     { href: '#hero', label: 'الرئيسية' },
     { href: '#about', label: 'عن الشركة' },
     { href: '#expertise', label: 'تخصصاتنا' },
-    { href: '#portfolio', label: 'المشاريع' },
+    { href: '#portfolio', label: 'سابقة الأعمال' },
+    { href: '#neon', label: 'كتالوج النيون' },
     { href: '#process', label: 'مسار العمل' },
     { href: '#why-us', label: 'معاييرنا' },
     { href: '#contact', label: 'اتصل بنا' },
@@ -83,12 +84,12 @@ export function LandingNavbar({ phone, whatsapp }: LandingNavbarProps) {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden xl:flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/5 backdrop-blur-md">
+          <nav className="hidden lg:flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/5 backdrop-blur-md">
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="px-3.5 py-1.5 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.06] rounded-full transition-all"
+                className="px-3.5 py-1.5 text-xs font-medium rounded-full text-zinc-300 hover:text-white hover:bg-white/[0.06] transition-all whitespace-nowrap"
               >
                 {link.label}
               </a>
@@ -141,7 +142,7 @@ export function LandingNavbar({ phone, whatsapp }: LandingNavbarProps) {
           {/* Mobile hamburger button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="xl:hidden p-2 text-zinc-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors border border-white/10"
+            className="lg:hidden p-2 text-zinc-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors border border-white/10"
             aria-label="القائمة الرئيسية"
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -151,14 +152,14 @@ export function LandingNavbar({ phone, whatsapp }: LandingNavbarProps) {
 
       {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
-        <div className="xl:hidden bg-[#111412]/98 border-b border-[#B89A67]/25 px-6 py-6 backdrop-blur-2xl animate-in slide-in-from-top-4 duration-200 shadow-2xl">
-          <nav className="flex flex-col gap-3">
+        <div className="lg:hidden bg-[#111412]/98 border-b border-[#B89A67]/25 px-6 py-6 backdrop-blur-2xl animate-in slide-in-from-top-4 duration-200 shadow-2xl">
+          <nav className="flex flex-col gap-2">
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-medium text-zinc-200 hover:text-[#B89A67] py-1.5 border-b border-white/5"
+                className="text-sm font-medium text-zinc-200 hover:text-[#B89A67] hover:bg-white/[0.04] py-2.5 px-3.5 rounded-lg border-b border-white/5 transition-all"
               >
                 {link.label}
               </a>
